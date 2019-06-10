@@ -1,0 +1,10 @@
+*.egg-info
+*.egg
+*.pyc
+/logs
+/dist
+*~
+
+# Pycharm
+.idea/**/*.xml
+.idea/**/*.iml

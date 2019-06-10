@@ -39,7 +39,7 @@ def draw_cell_outline(image, pos, cell_size=50, fill='black'):
     col, row = pos
     row, col = row * cell_size, col * cell_size
 
-    ImageDraw.Draw(image).rectangle([(row, col), (row + cell_size, col + cell_size)], outline=fill)
+    ImageDraw.Draw(image).rectangle([(row, col), (row + cell_size, col + cell_size)], outline=fill,width=3)
 
 
 def draw_circle(image, pos, cell_size=50, fill='black'):
@@ -48,4 +48,4 @@ def draw_circle(image, pos, cell_size=50, fill='black'):
     gap = cell_size * 0.4
     x, y = row + gap, col + gap
     x_dash, y_dash = row + cell_size - gap, col + cell_size - gap
-    ImageDraw.Draw(image).arc([(x, y), (x_dash, y_dash)], start=0, end=360, fill=fill)
+    ImageDraw.Draw(image).ellipse([(x, y), (x_dash, y_dash)], outline=fill, fill=fill)

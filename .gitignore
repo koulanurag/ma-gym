@@ -6,5 +6,4 @@
 *~
 
 # Pycharm
-.idea/**/*.xml
-.idea/**/*.iml
+.idea

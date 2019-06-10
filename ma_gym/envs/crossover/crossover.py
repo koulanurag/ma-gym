@@ -160,7 +160,7 @@ AGENT_COLORS = {
     1: 'blue'
 }
 
-CELL_SIZE = 15
+CELL_SIZE = 50
 
 WALL_COLOR = 'black'
 

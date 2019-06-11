@@ -20,7 +20,7 @@ class CrossOver(gym.Env):
 
     def __init__(self):
         self.obs_size = 1
-        self._grid_shape = (2, 8)
+        self._grid_shape = (5, 5)
         self.n_agents = 2
         self._max_steps = 100
         self._step_count = None
@@ -37,14 +37,6 @@ class CrossOver(gym.Env):
 
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
-        for row in range(self._grid_shape[0]):
-            for col in range(self._grid_shape[1]):
-                if self.__wall_exists((row, col)):
-                    fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=WALL_COLOR)
-
-        for agent_i, pos in self.final_agent_pos.items():
-            row, col = pos[0], pos[1]
-            draw_cell_outline(self._base_img, (row, col), cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
 
     def __create_grid(self):
         _grid = np.zeros(self._grid_shape)
@@ -64,7 +56,7 @@ class CrossOver(gym.Env):
         _obs = []
         for agent_i in range(0, self.n_agents):
             pos = self.agent_pos[agent_i]
-            _agent_i_obs = [(pos[0]+1) / self._grid_shape[0], (pos[1]+1) / (self._grid_shape[1])]
+            _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]
             _obs.append(_agent_i_obs)
         return _obs
 
@@ -113,6 +105,7 @@ class CrossOver(gym.Env):
 
     def step(self, one_hot_actions):
         self._step_count += 1
+        # rewards = [-0.25 for _ in range(self.n_agents)]
         rewards = [0 for _ in range(self.n_agents)]
         for agent_i, action in enumerate(one_hot_actions):
             action = action.index(1)
@@ -122,6 +115,8 @@ class CrossOver(gym.Env):
                 self._agent_dones[agent_i] = self.__is_agent_done(agent_i)
                 if self._agent_dones[agent_i]:
                     rewards[agent_i] = 5
+            # else:
+            #     rewards[agent_i] = 0
 
         if self._step_count >= self._max_steps:
             for i in range(self.n_agents):

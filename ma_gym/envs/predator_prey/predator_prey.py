@@ -5,11 +5,12 @@ from gym.utils import seeding
 import numpy as np
 from ..utils import draw_grid, fill_cell, draw_cell_outline, draw_circle
 import copy
+import random
 
 logger = logging.getLogger(__name__)
 
 
-class CrossOver(gym.Env):
+class PredatorPrey(gym.Env):
     """
     A simple environment to cross over the path of the other agent  (collaborative)
 
@@ -22,57 +23,88 @@ class CrossOver(gym.Env):
         self.obs_size = 1
         self._grid_shape = (5, 5)
         self.n_agents = 2
+        self.n_preys = 1
         self._max_steps = 100
         self._step_count = None
 
-        self.action_space = [spaces.Discrete(5) for _ in range(2)]  # l,r,t,d,noop
-        self.final_agent_pos = {0: [0, 7], 1: [0, 0]}  # they have to go in opposite direction
-        self.init_agent_pos = {0: [1, 2], 1: [1, 5]}
+        self.action_space = [spaces.Discrete(5) for _ in range(2)]
+        self.agent_pos = {}
+        self.prey_pos = {}
 
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
-        self.__init_full_obs()
-        self.__init_full_obs()
+        self._agent_dones = [False for _ in range(self.n_agents)]
+        self._alive_preys = [True for _ in range(self.n_preys)]
         self.viewer = None
 
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
 
     def __create_grid(self):
-        _grid = np.zeros(self._grid_shape)
-        _grid[1, :] = -1  # walls
-        for agent_i, pos in self.init_agent_pos.items():
-            _grid[pos[0], pos[1]] = 0
+        _grid = [[PRE_IDS['empty'] for col in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
         return _grid
 
     def __init_full_obs(self):
-        self.agent_pos = copy.copy(self.init_agent_pos)
         self._full_obs = self.__create_grid()
-        for agent_i, pos in self.agent_pos.items():
+
+        for agent_i in range(self.n_agents):
+            while True:
+                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                if self._is_cell_vacant(pos):
+                    self.agent_pos[agent_i] = pos
+                    break
             self.__update_agent_view(agent_i)
+
+        for prey_i in range(self.n_preys):
+            while True:
+                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                if self._is_cell_vacant(pos) and (self._neighbour_agents(pos)[0] == 0):
+                    self.prey_pos[prey_i] = pos
+                    break
+            self.__update_prey_view(prey_i)
+
         self.__draw_base_img()
 
     def get_agent_obs(self):
         _obs = []
         for agent_i in range(0, self.n_agents):
             pos = self.agent_pos[agent_i]
-            _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]
+            _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
+
+            # check if prey is in neighbour
+            _prey_pos = [0 for _ in range(4)]  # prey location in neighbour
+            if self.is_valid([pos[0] + 1, pos[1]]) and PRE_IDS['prey'] in self._full_obs[pos[0] + 1][pos[1]]:
+                _prey_pos[0] = 1
+            if self.is_valid([pos[0] - 1, pos[1]]) and PRE_IDS['prey'] in self._full_obs[pos[0] - 1][pos[1]]:
+                _prey_pos[1] = 1
+            if self.is_valid([pos[0], pos[1] + 1]) and PRE_IDS['prey'] in self._full_obs[pos[0]][pos[1] + 1]:
+                _prey_pos[2] = 1
+            if self.is_valid([pos[0], pos[1] - 1]) and PRE_IDS['prey'] in self._full_obs[pos[0]][pos[1] - 1]:
+                _prey_pos[3] = 1
+
+            _agent_i_obs += _prey_pos
             _obs.append(_agent_i_obs)
         return _obs
 
     def reset(self):
+        self.agent_pos = {}
+        self.prey_pos = {}
+
         self.__init_full_obs()
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
+        self._alive_preys = [True for _ in range(self.n_preys)]
         return self.get_agent_obs()
 
     def __wall_exists(self, pos):
         row, col = pos
-        return self._base_grid[row, col] == -1
+        return PRE_IDS['wall'] in self._base_grid[row, col]
+
+    def is_valid(self, pos):
+        return (0 <= pos[0] < self._grid_shape[0]) and (0 <= pos[1] < self._grid_shape[1])
 
     def _is_cell_vacant(self, pos):
-        is_valid = (0 <= pos[0] < self._grid_shape[0]) and (0 <= pos[1] < self._grid_shape[1])
-        return is_valid and (self._full_obs[pos[0], pos[1]] == 0)
+        return self.is_valid(pos) and (self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty'])
 
     def __update_agent_pos(self, agent_i, move):
         curr_pos = copy.copy(self.agent_pos[agent_i])
@@ -92,42 +124,122 @@ class CrossOver(gym.Env):
 
         if next_pos is not None and self._is_cell_vacant(next_pos):
             self.agent_pos[agent_i] = next_pos
-            self._full_obs[curr_pos[0], curr_pos[1]] = 0
+            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
             self.__update_agent_view(agent_i)
+
+    def __update_prey_pos(self, prey_i, move):
+        curr_pos = copy.copy(self.prey_pos[prey_i])
+        next_pos = None
+        if move == 0:  # down
+            next_pos = [curr_pos[0] + 1, curr_pos[1]]
+        elif move == 1:  # left
+            next_pos = [curr_pos[0], curr_pos[1] - 1]
+        elif move == 2:  # up
+            next_pos = [curr_pos[0] - 1, curr_pos[1]]
+        elif move == 3:  # right
+            next_pos = [curr_pos[0], curr_pos[1] + 1]
+        elif move == 4:  # no-op
+            pass
+        else:
+            raise Exception('Action Not found!')
+
+        if next_pos is not None and self._is_cell_vacant(next_pos):
+            self.prey_pos[prey_i] = next_pos
+            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+            self.__update_prey_view(prey_i)
         else:
             pass
 
     def __update_agent_view(self, agent_i):
-        self._full_obs[self.agent_pos[agent_i][0], self.agent_pos[agent_i][1]] = agent_i + 1
+        self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
+
+    def __update_prey_view(self, prey_i):
+        self._full_obs[self.prey_pos[prey_i][0]][self.prey_pos[prey_i][1]] = PRE_IDS['prey'] + str(prey_i + 1)
 
     def __is_agent_done(self, agent_i):
         return self.agent_pos[agent_i] == self.final_agent_pos[agent_i]
 
+    def _neighbour_agents(self, pos):
+        # check if agent is in neighbour
+        _count = 0
+        neighbours_xy = []
+        if self.is_valid([pos[0] + 1, pos[1]]) and PRE_IDS['agent'] in self._full_obs[pos[0] + 1][pos[1]]:
+            _count += 1
+            neighbours_xy.append([pos[0] + 1, pos[1]])
+        if self.is_valid([pos[0] - 1, pos[1]]) and PRE_IDS['agent'] in self._full_obs[pos[0] - 1][pos[1]]:
+            _count += 1
+            neighbours_xy.append([pos[0] - 1, pos[1]])
+        if self.is_valid([pos[0], pos[1] + 1]) and PRE_IDS['agent'] in self._full_obs[pos[0]][pos[1] + 1]:
+            _count += 1
+            neighbours_xy.append([pos[0], pos[1] + 1])
+        if self.is_valid([pos[0], pos[1] - 1]) and PRE_IDS['agent'] in self._full_obs[pos[0]][pos[1] - 1]:
+            neighbours_xy.append([pos[0], pos[1] - 1])
+            _count += 1
+
+        agent_id = []
+        for x, y in neighbours_xy:
+            agent_id.append(int(self._full_obs[x][y].split(PRE_IDS['agent'])[1]) - 1)
+        return _count, agent_id
+
     def step(self, one_hot_actions):
         self._step_count += 1
-        # rewards = [-0.25 for _ in range(self.n_agents)]
         rewards = [0 for _ in range(self.n_agents)]
+
         for agent_i, action in enumerate(one_hot_actions):
             action = action.index(1)
             if not (self._agent_dones[agent_i]):
                 self.__update_agent_pos(agent_i, action)
 
-                self._agent_dones[agent_i] = self.__is_agent_done(agent_i)
-                if self._agent_dones[agent_i]:
-                    rewards[agent_i] = 5
-            # else:
-            #     rewards[agent_i] = 0
+        for prey_i in range(self.n_preys):
+            if self._alive_preys[prey_i]:
+                predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
-        if self._step_count >= self._max_steps:
+                if predator_neighbour_count > 0:
+                    self._alive_preys[prey_i] = False
+                    pos = self.prey_pos[prey_i]
+                    self._full_obs[pos[0]][pos[1]] = PRE_IDS['empty']
+
+                    if predator_neighbour_count >= 2:
+                        _reward = 0.5
+                    else:
+                        _reward = -0.5
+
+                    for agent_i in n_i:
+                        rewards[agent_i] += _reward
+                else:
+                    prey_move = np.random.choice(5, 1, p=[0.1875, 0.1875, 0.1875, 0.1875, 0.25])[0]
+                    self.__update_prey_pos(prey_i, prey_move)
+
+        if self._step_count >= self._max_steps or (True not in self._alive_preys):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
+        for row in self._full_obs:
+            print(row)
+        print('***************')
+
         return self.get_agent_obs(), rewards, self._agent_dones, {}
+
+    def __get_neighbour_coordinates(self, pos):
+        neighbours = []
+        if self.is_valid([pos[0] + 1, pos[1]]):
+            neighbours.append([pos[0] + 1, pos[1]])
+        if self.is_valid([pos[0] - 1, pos[1]]):
+            neighbours.append([pos[0] - 1, pos[1]])
+        if self.is_valid([pos[0], pos[1] + 1]):
+            neighbours.append([pos[0], pos[1] + 1])
+        if self.is_valid([pos[0], pos[1] - 1]):
+            neighbours.append([pos[0], pos[1] - 1])
+        return neighbours
 
     def render(self, mode='human'):
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
-            draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
+            draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
+            for neighbour in self.__get_neighbour_coordinates(self.agent_pos[agent_i]):
+                draw_cell_outline(img, neighbour, cell_size=CELL_SIZE, fill=AGENT_COLOR)
+        for prey_i in range(self.n_preys):
+            draw_circle(img, self.prey_pos[prey_i], cell_size=CELL_SIZE, fill=PREY_COLOR)
         img = np.asarray(img)
 
         if mode == 'rgb_array':
@@ -150,10 +262,8 @@ class CrossOver(gym.Env):
             self.viewer = None
 
 
-AGENT_COLORS = {
-    0: 'red',
-    1: 'blue'
-}
+AGENT_COLOR = 'blue'
+PREY_COLOR = 'red'
 
 CELL_SIZE = 40
 
@@ -165,4 +275,11 @@ ACTION_MEANING = {
     2: "UP",
     3: "RIGHT",
     4: "NOOP",
+}
+
+PRE_IDS = {
+    'agent': 'A',
+    'prey': 'P',
+    'wall': 'W',
+    'empty': '0'
 }

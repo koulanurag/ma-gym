@@ -1,14 +1,8 @@
 import logging
-import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
 import numpy as np
-from ..utils import draw_grid, fill_cell
-import copy
 from .crossover import CrossOver
 
 logger = logging.getLogger(__name__)
-import os, signal
 
 
 class CrossOverF(CrossOver):

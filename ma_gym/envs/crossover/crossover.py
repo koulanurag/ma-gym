@@ -64,7 +64,8 @@ class CrossOver(gym.Env):
         _obs = []
         for agent_i in range(0, self.n_agents):
             pos = self.agent_pos[agent_i]
-            _agent_i_obs = [(pos[0]+1) / self._grid_shape[0], (pos[1]+1) / (self._grid_shape[1])]
+            _agent_i_obs = [(pos[0] + 1) / self._grid_shape[0], (pos[1] + 1) / (self._grid_shape[1])]
+            _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
         return _obs
 

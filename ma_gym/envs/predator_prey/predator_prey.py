@@ -35,6 +35,7 @@ class PredatorPrey(gym.Env):
         self._full_obs = self.__create_grid()
         self._agent_dones = [False for _ in range(self.n_agents)]
         self._alive_preys = [True for _ in range(self.n_preys)]
+        self._prey_move_probs = [0.2, 0.2, 0.2, 0.2, 0.2]
         self.viewer = None
 
     def __draw_base_img(self):
@@ -127,6 +128,19 @@ class PredatorPrey(gym.Env):
             self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
             self.__update_agent_view(agent_i)
 
+    def __next_pos(self, curr_pos, move):
+        if move == 0:  # down
+            next_pos = [curr_pos[0] + 1, curr_pos[1]]
+        elif move == 1:  # left
+            next_pos = [curr_pos[0], curr_pos[1] - 1]
+        elif move == 2:  # up
+            next_pos = [curr_pos[0] - 1, curr_pos[1]]
+        elif move == 3:  # right
+            next_pos = [curr_pos[0], curr_pos[1] + 1]
+        elif move == 4:  # no-op
+            next_pos = curr_pos
+        return next_pos
+
     def __update_prey_pos(self, prey_i, move):
         curr_pos = copy.copy(self.prey_pos[prey_i])
         next_pos = None
@@ -195,28 +209,33 @@ class PredatorPrey(gym.Env):
                 predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
                 if predator_neighbour_count > 0:
-                    self._alive_preys[prey_i] = False
-                    pos = self.prey_pos[prey_i]
-                    self._full_obs[pos[0]][pos[1]] = PRE_IDS['empty']
-
                     if predator_neighbour_count >= 2:
-                        _reward = 0.5
-                    else:
+                        self._alive_preys[prey_i] = False
+                        pos = self.prey_pos[prey_i]
+                        self._full_obs[pos[0]][pos[1]] = PRE_IDS['empty']
+                        _reward = 1
+                    elif predator_neighbour_count == 1:
                         _reward = -0.5
 
                     for agent_i in n_i:
                         rewards[agent_i] += _reward
                 else:
-                    prey_move = np.random.choice(5, 1, p=[0.1875, 0.1875, 0.1875, 0.1875, 0.25])[0]
+                    prey_move = None
+                    for _ in range(5):
+                        _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
+                        if self._neighbour_agents(self.__next_pos(self.prey_pos[prey_i], _move))[0] == 0:
+                            prey_move = _move
+                            break
+                    prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
                     self.__update_prey_pos(prey_i, prey_move)
 
-        if self._step_count >= self._max_steps or (True not in self._alive_preys):
+        if self._step_count >= self._max_steps:
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        for row in self._full_obs:
-            print(row)
-        print('***************')
+        # for row in self._full_obs:
+        #     print(row)
+        # print('***************')
 
         return self.get_agent_obs(), rewards, self._agent_dones, {}
 

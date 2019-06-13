@@ -17,3 +17,15 @@ register(
     id='PredatorPrey5x5-v0',
     entry_point='ma_gym.envs.predator_prey:PredatorPrey',
 )
+register(
+    id='PredatorPrey5x5-v1',
+    entry_point='ma_gym.envs.predator_prey:PredatorPreyF',
+)
+register(
+    id='PredatorPreyStable5x5-v0',
+    entry_point='ma_gym.envs.predator_prey:PredatorPreyS',
+)
+register(
+    id='PredatorPreyStable5x5-v1',
+    entry_point='ma_gym.envs.predator_prey:PredatorPreySF',
+)

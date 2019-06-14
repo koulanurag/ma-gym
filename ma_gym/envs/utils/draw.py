@@ -28,18 +28,18 @@ def draw_grid(rows, cols, cell_size=50, fill='black'):
     return image
 
 
-def fill_cell(image, pos, cell_size=50, fill='black'):
+def fill_cell(image, pos, cell_size=50, fill='black', margin=0):
     col, row = pos
     row, col = row * cell_size, col * cell_size
-
-    ImageDraw.Draw(image).rectangle([(row, col), (row + cell_size, col + cell_size)], fill=fill)
+    margin *= cell_size
+    x, y, x_dash, y_dash = row + margin, col + margin, row + cell_size - margin, col + cell_size - margin
+    ImageDraw.Draw(image).rectangle([(x, y), (x_dash, y_dash)], fill=fill)
 
 
 def draw_cell_outline(image, pos, cell_size=50, fill='black'):
     col, row = pos
     row, col = row * cell_size, col * cell_size
-
-    ImageDraw.Draw(image).rectangle([(row, col), (row + cell_size, col + cell_size)], outline=fill,width=3)
+    ImageDraw.Draw(image).rectangle([(row, col), (row + cell_size, col + cell_size)], outline=fill, width=3)
 
 
 def draw_circle(image, pos, cell_size=50, fill='black'):

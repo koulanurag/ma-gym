@@ -3,7 +3,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
-from ..utils import draw_grid, fill_cell, draw_cell_outline, draw_circle
+from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle
 import copy
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class CrossOver(gym.Env):
     """
     metadata = {'render.modes': ['human']}
 
-    def __init__(self):
+    def __init__(self,full_observable=False):
         self.obs_size = 1
         self._grid_shape = (2, 8)
         self.n_agents = 2
@@ -32,8 +32,10 @@ class CrossOver(gym.Env):
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
         self.__init_full_obs()
-        self.__init_full_obs()
         self.viewer = None
+
+        self.full_observable = full_observable
+
 
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
@@ -67,6 +69,11 @@ class CrossOver(gym.Env):
             _agent_i_obs = [(pos[0] + 1) / self._grid_shape[0], (pos[1] + 1) / (self._grid_shape[1])]
             _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
+
+        if self.full_observable:
+            _obs = np.array(_obs)
+            _obs = [_obs for _ in range(self.n_agents)]
+
         return _obs
 
     def reset(self):

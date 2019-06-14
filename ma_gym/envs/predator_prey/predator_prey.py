@@ -29,7 +29,7 @@ class PredatorPrey(gym.Env):
         self._step_count = None
         self._penalty = -0.5
 
-        self.action_space = [spaces.Discrete(5) for _ in range(2)]
+        self.action_space = [spaces.Discrete(5) for _ in range(self.n_agents)]
         self.agent_pos = {}
         self.prey_pos = {}
 
@@ -92,7 +92,7 @@ class PredatorPrey(gym.Env):
             _obs.append(_agent_i_obs)
 
         if self.full_observable:
-            _obs = np.array(_obs)
+            _obs = np.array(_obs).flatten().tolist()
             _obs = [_obs for _ in range(self.n_agents)]
         return _obs
 
@@ -171,6 +171,7 @@ class PredatorPrey(gym.Env):
             self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
             self.__update_prey_view(prey_i)
         else:
+            # print('pos not updated')
             pass
 
     def __update_agent_view(self, agent_i):
@@ -213,9 +214,7 @@ class PredatorPrey(gym.Env):
         for prey_i in range(self.n_preys):
             predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
-            if predator_neighbour_count == 1:
-                _reward = self._penalty
-
+            if predator_neighbour_count < 2:
                 # just move to next cells
                 prey_move = None
                 for _ in range(5):  # 5 trails
@@ -226,7 +225,8 @@ class PredatorPrey(gym.Env):
                 prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
                 self.__update_prey_pos(prey_i, prey_move)
 
-            elif predator_neighbour_count >= 2:
+                _reward = self._penalty if predator_neighbour_count == 1 else 0
+            else:  # predator_neighbour_count >= 2
                 _reward = 1
 
                 # initialize to a new location
@@ -236,6 +236,9 @@ class PredatorPrey(gym.Env):
                         self.prey_pos[prey_i] = pos
                         break
                 self.__update_prey_view(prey_i)
+
+            for agent_i in n_i:
+                rewards[agent_i] += _reward
 
         if self._step_count >= self._max_steps:
             for i in range(self.n_agents):
@@ -259,8 +262,8 @@ class PredatorPrey(gym.Env):
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
             for neighbour in self.__get_neighbour_coordinates(self.agent_pos[agent_i]):
-                fill_cell(img, neighbour, cell_size=CELL_SIZE, fill=AGENT_NEIGHBOURHOUD_COLOR, margin=0.1)
-            fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_NEIGHBOURHOUD_COLOR, margin=0.1)
+                fill_cell(img, neighbour, cell_size=CELL_SIZE, fill=AGENT_NEIGHBORHOOD_COLOR, margin=0.1)
+            fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_NEIGHBORHOOD_COLOR, margin=0.1)
 
         for agent_i in range(self.n_agents):
             draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
@@ -290,7 +293,7 @@ class PredatorPrey(gym.Env):
 
 
 AGENT_COLOR = ImageColor.getcolor('blue', mode='RGB')
-AGENT_NEIGHBOURHOUD_COLOR = (186, 238, 247)
+AGENT_NEIGHBORHOOD_COLOR = (186, 238, 247)
 PREY_COLOR = 'red'
 
 CELL_SIZE = 40

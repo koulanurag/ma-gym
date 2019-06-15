@@ -16,9 +16,9 @@ class CrossOver(gym.Env):
     Observation Space : Discrete
     Action Space : Discrete
     """
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self,full_observable=False):
+    def __init__(self, full_observable=False):
         self.obs_size = 1
         self._grid_shape = (2, 8)
         self.n_agents = 2
@@ -135,7 +135,8 @@ class CrossOver(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        return self.get_agent_obs(), rewards, self._agent_dones, {}
+        # return self.get_agent_obs(), rewards, self._agent_dones, {}
+        return self.get_agent_obs(), 0, all(self._agent_dones), {}
 
     def render(self, mode='human'):
         img = copy.copy(self._base_img)

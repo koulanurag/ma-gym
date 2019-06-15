@@ -18,7 +18,7 @@ class PredatorPrey(gym.Env):
     Observation Space : Discrete
     Action Space : Discrete
     """
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human','rgb_array']}
 
     def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=[0.2, 0.2, 0.2, 0.2, 0.2],
                  full_observable=False):

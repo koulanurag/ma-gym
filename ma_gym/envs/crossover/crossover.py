@@ -5,6 +5,7 @@ from gym.utils import seeding
 import numpy as np
 from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle
 import copy
+from ..utils.action_space import MultiAgentActionSpace
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class CrossOver(gym.Env):
         self._max_steps = 100
         self._step_count = None
 
-        self.action_space = [spaces.Discrete(5) for _ in range(2)]  # l,r,t,d,noop
+        self.action_space =  MultiAgentActionSpace([spaces.Discrete(5) for _ in range(2)])  # l,r,t,d,noop
         self.final_agent_pos = {0: [0, 7], 1: [0, 0]}  # they have to go in opposite direction
         self.init_agent_pos = {0: [1, 2], 1: [1, 5]}
 
@@ -119,11 +120,10 @@ class CrossOver(gym.Env):
     def __is_agent_done(self, agent_i):
         return self.agent_pos[agent_i] == self.final_agent_pos[agent_i]
 
-    def step(self, one_hot_actions):
+    def step(self, agents_action):
         self._step_count += 1
         rewards = [0 for _ in range(self.n_agents)]
-        for agent_i, action in enumerate(one_hot_actions):
-            action = action.index(1)
+        for agent_i, action in enumerate(agents_action):
             if not (self._agent_dones[agent_i]):
                 self.__update_agent_pos(agent_i, action)
 
@@ -135,8 +135,7 @@ class CrossOver(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        # return self.get_agent_obs(), rewards, self._agent_dones, {}
-        return self.get_agent_obs(), 0, all(self._agent_dones), {}
+        return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def render(self, mode='human'):
         img = copy.copy(self._base_img)

@@ -3,7 +3,8 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle
+from ..utils.draw import draw_grid, fill_cell, draw_circle
+from ..utils.action_space import MultiAgentActionSpace
 import copy
 import random
 from PIL import ImageColor
@@ -18,7 +19,7 @@ class PredatorPrey(gym.Env):
     Observation Space : Discrete
     Action Space : Discrete
     """
-    metadata = {'render.modes': ['human','rgb_array']}
+    metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=[0.2, 0.2, 0.2, 0.2, 0.2],
                  full_observable=False):
@@ -29,7 +30,7 @@ class PredatorPrey(gym.Env):
         self._step_count = None
         self._penalty = -0.5
 
-        self.action_space = [spaces.Discrete(5) for _ in range(self.n_agents)]
+        self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
         self.agent_pos = {}
         self.prey_pos = {}
 
@@ -47,7 +48,7 @@ class PredatorPrey(gym.Env):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
 
     def __create_grid(self):
-        _grid = [[PRE_IDS['empty'] for col in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
+        _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
         return _grid
 
     def __init_full_obs(self):
@@ -88,7 +89,8 @@ class PredatorPrey(gym.Env):
             if self.is_valid([pos[0], pos[1] - 1]) and PRE_IDS['prey'] in self._full_obs[pos[0]][pos[1] - 1]:
                 _prey_pos[3] = 1
 
-            _agent_i_obs += _prey_pos
+            _agent_i_obs += _prey_pos  # adding neighbour prey pos
+            _agent_i_obs += [self._step_count / self._max_steps]  # adding time
             _obs.append(_agent_i_obs)
 
         if self.full_observable:
@@ -202,12 +204,11 @@ class PredatorPrey(gym.Env):
             agent_id.append(int(self._full_obs[x][y].split(PRE_IDS['agent'])[1]) - 1)
         return _count, agent_id
 
-    def step(self, one_hot_actions):
+    def step(self, agents_action):
         self._step_count += 1
         rewards = [0 for _ in range(self.n_agents)]
 
-        for agent_i, action in enumerate(one_hot_actions):
-            action = action.index(1)
+        for agent_i, action in enumerate(agents_action):
             if not (self._agent_dones[agent_i]):
                 self.__update_agent_pos(agent_i, action)
 

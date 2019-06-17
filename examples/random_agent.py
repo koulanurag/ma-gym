@@ -1,5 +1,6 @@
 import gym
 import ma_gym
+from ma_gym.wrappers import Monitor
 import argparse
 
 if __name__ == '__main__':
@@ -11,6 +12,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     env = gym.make(args.env)
+    env = Monitor(env, directory='recordings', force=True)
     for ep_i in range(args.episodes):
         done_n = [False for _ in range(env.n_agents)]
         ep_reward = 0

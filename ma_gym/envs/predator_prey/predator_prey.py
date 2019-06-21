@@ -245,7 +245,8 @@ class PredatorPrey(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        return self.get_agent_obs(), rewards, self._agent_dones, {}
+        # return self.get_agent_obs(), rewards, self._agent_dones, {}
+        return self.get_agent_obs(), 0, all(self._agent_dones), {}
 
     def __get_neighbour_coordinates(self, pos):
         neighbours = []

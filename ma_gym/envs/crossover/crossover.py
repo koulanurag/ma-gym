@@ -37,7 +37,6 @@ class CrossOver(gym.Env):
 
         self.full_observable = full_observable
 
-
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
         for row in range(self._grid_shape[0]):

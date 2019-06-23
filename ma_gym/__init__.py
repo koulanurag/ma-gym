@@ -14,6 +14,16 @@ register(
     kwargs={'full_observable': True}
 )
 
+register(
+    id='TrafficJunction-v0',
+    entry_point='ma_gym.envs.traffic_junction:TrafficJunction',
+)
+
+register(
+    id='Combat-v0',
+    entry_point='ma_gym.envs.combat:Combat',
+)
+
 for game_info in [[(5, 5), 2, 1], [(7, 7), 4, 2]]:
     grid_shape, n_agents, n_preys = game_info
     _game_name = 'PredatorPrey{}x{}'.format(grid_shape[0], grid_shape[1])

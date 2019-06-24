@@ -29,6 +29,7 @@ class PredatorPrey(gym.Env):
         self._max_steps = 100
         self._step_count = None
         self._penalty = -0.5
+        self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
         self.agent_pos = {}
@@ -78,18 +79,14 @@ class PredatorPrey(gym.Env):
             pos = self.agent_pos[agent_i]
             _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
 
-            # check if prey is in neighbour
-            _prey_pos = [0 for _ in range(4)]  # prey location in neighbour
-            if self.is_valid([pos[0] + 1, pos[1]]) and PRE_IDS['prey'] in self._full_obs[pos[0] + 1][pos[1]]:
-                _prey_pos[0] = 1
-            if self.is_valid([pos[0] - 1, pos[1]]) and PRE_IDS['prey'] in self._full_obs[pos[0] - 1][pos[1]]:
-                _prey_pos[1] = 1
-            if self.is_valid([pos[0], pos[1] + 1]) and PRE_IDS['prey'] in self._full_obs[pos[0]][pos[1] + 1]:
-                _prey_pos[2] = 1
-            if self.is_valid([pos[0], pos[1] - 1]) and PRE_IDS['prey'] in self._full_obs[pos[0]][pos[1] - 1]:
-                _prey_pos[3] = 1
+            # check if prey is in the view area
+            _prey_pos = np.zeros(self._agent_view_mask)  # prey location in neighbour
+            for row in range(max(0, pos[0] - 2), min(pos[0] + 2 + 1, self._grid_shape[0])):
+                for col in range(max(0, pos[1] - 2), min(pos[1] + 2 + 1, self._grid_shape[1])):
+                    if PRE_IDS['prey'] in self._full_obs[row][col]:
+                        _prey_pos[row - (pos[0] - 2), col - (pos[1] - 2)] = 1  # get relative position for the prey loc.
 
-            _agent_i_obs += _prey_pos  # adding neighbour prey pos
+            _agent_i_obs += _prey_pos.flatten().tolist()  # adding prey pos in observable area
             _agent_i_obs += [self._step_count / self._max_steps]  # adding time
             _obs.append(_agent_i_obs)
 
@@ -245,8 +242,7 @@ class PredatorPrey(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        # return self.get_agent_obs(), rewards, self._agent_dones, {}
-        return self.get_agent_obs(), 0, all(self._agent_dones), {}
+        return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def __get_neighbour_coordinates(self, pos):
         neighbours = []

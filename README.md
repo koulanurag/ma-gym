@@ -4,7 +4,7 @@ Multi Agent Environments for OpenAI gym
 ## Installation
 ```bash
 cd ma-gym
-pip install -e .
+python setup.py install # use 'develop' instead of 'install' if developing the package
 ```
 
 ## Usage:

@@ -14,6 +14,27 @@ logger = logging.getLogger(__name__)
 
 class Combat(gym.Env):
     """
+    We simulate a simple battle involving two opposing teams in a 15×15 grid as shown in Fig. 2(middle).
+    Each team consists of m = 5 agents and their initial positions are sampled uniformly in a 5 × 5
+    square around the team center, which is picked uniformly in the grid. At each time step, an agent can
+    perform one of the following actions: move one cell in one of four directions; attack another agent
+    by specifying its ID j (there are m attack actions, each corresponding to one enemy agent); or do
+    nothing. If agent A attacks agent B, then B’s health point will be reduced by 1, but only if B is inside
+    the firing range of A (its surrounding 3 × 3 area). Agents need one time step of cooling down after
+    an attack, during which they cannot attack. All agents start with 3 health points, and die when their
+    health reaches 0. A team will win if all agents in the other team die. The simulation ends when one
+    team wins, or neither of teams win within 40 time steps (a draw).
+
+    The model controls one team during training, and the other team consist of bots that follow a hardcoded policy.
+    The bot policy is to attack the nearest enemy agent if it is within its firing range. If not,
+    it approaches the nearest visible enemy agent within visual range. An agent is visible to all bots if it
+    is inside the visual range of any individual bot. This shared vision gives an advantage to the bot team.
+    When input to a model, each agent is represented by a set of one-hot binary vectors {i, t, l, h, c}
+    encoding its unique ID, team ID, location, health points and cooldown. A model controlling an agent
+    also sees other agents in its visual range (3 × 3 surrounding area). The model gets reward of -1 if the
+    team loses or draws at the end of the game. In addition, it also get reward of −0.1 times the total
+    health points of the enemy team, which encourages it to attack enemy bots.
+
     Reference : Learning Multiagent Communication with Backpropagation
     Url : https://papers.nips.cc/paper/6398-learning-multiagent-communication-with-backpropagation.pdf
     """

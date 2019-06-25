@@ -14,14 +14,26 @@ logger = logging.getLogger(__name__)
 
 class PredatorPrey(gym.Env):
     """
-    A simple environment to cross over the path of the other agent  (collaborative)
+    Predator-prey involves a grid world, in which multiple predators attempt to capture randomly moving prey.
+    Agents have a 5 × 5 view and select one of five actions ∈ {Left, Right, Up, Down, Stop} at each time step.
+    Prey move according to selecting a uniformly random action at each time step.
 
-    Observation Space : Discrete
-    Action Space : Discrete
+    We define the “catching” of a prey as when the prey is within the cardinal direction of at least one predator.
+    Each agent’s observation includes its own coordinates, agent ID, and the coordinates of the prey relative
+    to itself, if observed. The agents can separate roles even if the parameters of the neural networks are
+    shared by agent ID. We test with two different grid worlds: (i) a 5 × 5 grid world with two predators and one prey,
+    and (ii) a 7 × 7 grid world with four predators and two prey.
+
+    We modify the general predator-prey, such that a positive reward is given only if multiple predators catch a prey
+    simultaneously, requiring a higher degree of cooperation. The predators get a team reward of 1 if two or more
+    catch a prey at the same time, but they are given negative reward −P, if only one predator catches the prey as
+    shown in Figure 7. We experimented with three varying P vales, where P = 0.5, 1.0, 1.5. The terminating condition
+    of this task is when a prey is caught with more than one predator. The prey that has been caught is regenerated
+    at random positions whenever the task terminates, and the game proceeds over fixed 100 steps.
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=[0.2, 0.2, 0.2, 0.2, 0.2],
+    def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=[0.175, 0.175, 0.175, 0.175, 0.3],
                  full_observable=False):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
@@ -29,11 +41,13 @@ class PredatorPrey(gym.Env):
         self._max_steps = 100
         self._step_count = None
         self._penalty = -0.5
+        self._step_cost = -0.01
         self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
         self.agent_pos = {}
         self.prey_pos = {}
+        self._prey_alive = None
 
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
@@ -102,6 +116,7 @@ class PredatorPrey(gym.Env):
         self.__init_full_obs()
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
+        self._prey_alive = [True for _ in range(self.n_preys)]
 
         return self.get_agent_obs()
 
@@ -151,27 +166,30 @@ class PredatorPrey(gym.Env):
 
     def __update_prey_pos(self, prey_i, move):
         curr_pos = copy.copy(self.prey_pos[prey_i])
-        next_pos = None
-        if move == 0:  # down
-            next_pos = [curr_pos[0] + 1, curr_pos[1]]
-        elif move == 1:  # left
-            next_pos = [curr_pos[0], curr_pos[1] - 1]
-        elif move == 2:  # up
-            next_pos = [curr_pos[0] - 1, curr_pos[1]]
-        elif move == 3:  # right
-            next_pos = [curr_pos[0], curr_pos[1] + 1]
-        elif move == 4:  # no-op
-            pass
-        else:
-            raise Exception('Action Not found!')
+        if self._prey_alive[prey_i]:
+            next_pos = None
+            if move == 0:  # down
+                next_pos = [curr_pos[0] + 1, curr_pos[1]]
+            elif move == 1:  # left
+                next_pos = [curr_pos[0], curr_pos[1] - 1]
+            elif move == 2:  # up
+                next_pos = [curr_pos[0] - 1, curr_pos[1]]
+            elif move == 3:  # right
+                next_pos = [curr_pos[0], curr_pos[1] + 1]
+            elif move == 4:  # no-op
+                pass
+            else:
+                raise Exception('Action Not found!')
 
-        if next_pos is not None and self._is_cell_vacant(next_pos):
-            self.prey_pos[prey_i] = next_pos
-            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
-            self.__update_prey_view(prey_i)
+            if next_pos is not None and self._is_cell_vacant(next_pos):
+                self.prey_pos[prey_i] = next_pos
+                self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+                self.__update_prey_view(prey_i)
+            else:
+                # print('pos not updated')
+                pass
         else:
-            # print('pos not updated')
-            pass
+            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
 
     def __update_agent_view(self, agent_i):
         self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
@@ -212,37 +230,39 @@ class PredatorPrey(gym.Env):
         for prey_i in range(self.n_preys):
             predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
-            if predator_neighbour_count < 2:
-                # just move to next cells
-                prey_move = None
-                for _ in range(5):  # 5 trails
+            prey_move = None
+            if predator_neighbour_count == 0:
+
+                # 5 trails : we sample next move and check if prey (smart) doesn't go in neighbourhood of predator
+                for _ in range(5):
                     _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
                     if self._neighbour_agents(self.__next_pos(self.prey_pos[prey_i], _move))[0] == 0:
                         prey_move = _move
                         break
                 prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
+                _reward = self._step_cost
                 self.__update_prey_pos(prey_i, prey_move)
+            else:  # predator_neighbour_count >=1
+                _reward = self._penalty if predator_neighbour_count == 1 else 1
+                self._prey_alive[prey_i] = False
 
-                _reward = self._penalty if predator_neighbour_count == 1 else 0
-            else:  # predator_neighbour_count >= 2
-                _reward = 1
+            self.__update_prey_pos(prey_i, None)
 
-                # initialize to a new location
-                while True:
-                    pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
-                    if self._is_cell_vacant(pos) and (self._neighbour_agents(pos)[0] == 0):
-                        self.prey_pos[prey_i] = pos
-                        break
-                self.__update_prey_view(prey_i)
+            _reward /= len(n_i)
 
             for agent_i in n_i:
                 rewards[agent_i] += _reward
 
-        if self._step_count >= self._max_steps:
+        if self._step_count >= self._max_steps or (True not in self._prey_alive):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        return self.get_agent_obs(), rewards, self._agent_dones, {}
+        for row in self._full_obs:
+            print(row)
+        print('*********')
+        self.render()
+
+        return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 
     def __get_neighbour_coordinates(self, pos):
         neighbours = []
@@ -267,9 +287,10 @@ class PredatorPrey(gym.Env):
             draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
 
         for prey_i in range(self.n_preys):
-            draw_circle(img, self.prey_pos[prey_i], cell_size=CELL_SIZE, fill=PREY_COLOR)
-        img = np.asarray(img)
+            if self._prey_alive[prey_i]:
+                draw_circle(img, self.prey_pos[prey_i], cell_size=CELL_SIZE, fill=PREY_COLOR)
 
+        img = np.asarray(img)
         if mode == 'rgb_array':
             return img
         elif mode == 'human':

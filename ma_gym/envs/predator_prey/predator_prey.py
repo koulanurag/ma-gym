@@ -42,6 +42,7 @@ class PredatorPrey(gym.Env):
         self._step_count = None
         self._penalty = -0.5
         self._step_cost = -0.01
+        self._prey_capture_reward = 1
         self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
@@ -131,6 +132,7 @@ class PredatorPrey(gym.Env):
         return self.is_valid(pos) and (self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty'])
 
     def __update_agent_pos(self, agent_i, move):
+
         curr_pos = copy.copy(self.agent_pos[agent_i])
         next_pos = None
         if move == 0:  # down
@@ -221,7 +223,7 @@ class PredatorPrey(gym.Env):
 
     def step(self, agents_action):
         self._step_count += 1
-        rewards = [0 for _ in range(self.n_agents)]
+        rewards = [self._step_cost for _ in range(self.n_agents)]
 
         for agent_i, action in enumerate(agents_action):
             if not (self._agent_dones[agent_i]):
@@ -240,27 +242,24 @@ class PredatorPrey(gym.Env):
                         prey_move = _move
                         break
                 prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
-                _reward = self._step_cost
-                self.__update_prey_pos(prey_i, prey_move)
+
             else:  # predator_neighbour_count >=1
-                _reward = self._penalty if predator_neighbour_count == 1 else 1
-                self._prey_alive[prey_i] = False
+                _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
+                self._prey_alive[prey_i] = not (predator_neighbour_count > 1)  # prey dies only if more predators
 
-            self.__update_prey_pos(prey_i, None)
+                for agent_i in range(self.n_agents):
+                    rewards[agent_i] += _reward
 
-            _reward /= len(n_i)
-
-            for agent_i in n_i:
-                rewards[agent_i] += _reward
+            self.__update_prey_pos(prey_i, prey_move)
 
         if self._step_count >= self._max_steps or (True not in self._prey_alive):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        for row in self._full_obs:
-            print(row)
-        print('*********')
-        self.render()
+        # for row in self._full_obs:
+        #     print(row)
+        # print('*********')
+        # self.render()
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 

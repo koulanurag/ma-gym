@@ -71,7 +71,7 @@ class CrossOver(gym.Env):
             _obs.append(_agent_i_obs)
 
         if self.full_observable:
-            _obs = np.array(_obs)
+            _obs = np.array(_obs).flatten().tolist()
             _obs = [_obs for _ in range(self.n_agents)]
 
         return _obs

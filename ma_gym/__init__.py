@@ -1,8 +1,19 @@
 import logging
+from gym import envs
 from gym.envs.registration import register
 
 logger = logging.getLogger(__name__)
 
+# Register openai's environments as multi agent
+env_ids = [env_spec.id for env_spec in envs.registry.all()]
+for env_id in env_ids:
+    register(
+        id='ma_' + env_id,
+        entry_point='ma_gym.envs.openai:MultiAgentWrapper',
+        kwargs={'name': env_id}
+    )
+
+# add new environments
 register(
     id='CrossOver-v0',
     entry_point='ma_gym.envs.crossover:CrossOver',
@@ -24,7 +35,7 @@ register(
     entry_point='ma_gym.envs.combat:Combat',
 )
 
-for game_info in [[(5, 5), 2, 1], [(7, 7), 4, 2]]:
+for game_info in [[(5, 5), 2, 1], [(7, 7), 4, 2]]:  # [(grid_shape, predator_n, prey_n),..]
     grid_shape, n_agents, n_preys = game_info
     _game_name = 'PredatorPrey{}x{}'.format(grid_shape[0], grid_shape[1])
     register(

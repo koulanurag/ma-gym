@@ -42,7 +42,7 @@ class PredatorPrey(gym.Env):
         self._step_count = None
         self._penalty = -0.5
         self._step_cost = -0.01
-        self._prey_capture_reward = 1
+        self._prey_capture_reward = 5
         self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
@@ -232,9 +232,15 @@ class PredatorPrey(gym.Env):
         for prey_i in range(self.n_preys):
             predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
-            prey_move = None
-            if predator_neighbour_count == 0:
+            if predator_neighbour_count >= 1:
+                _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
+                self._prey_alive[prey_i] = not (predator_neighbour_count == 1)
 
+                for agent_i in range(self.n_agents):
+                    rewards[agent_i] += _reward
+
+            prey_move = None
+            if self._prey_alive[prey_i]:
                 # 5 trails : we sample next move and check if prey (smart) doesn't go in neighbourhood of predator
                 for _ in range(5):
                     _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
@@ -242,13 +248,6 @@ class PredatorPrey(gym.Env):
                         prey_move = _move
                         break
                 prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
-
-            else:  # predator_neighbour_count >=1
-                _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
-                self._prey_alive[prey_i] = not (predator_neighbour_count > 1)  # prey dies only if more predators
-
-                for agent_i in range(self.n_agents):
-                    rewards[agent_i] += _reward
 
             self.__update_prey_pos(prey_i, prey_move)
 

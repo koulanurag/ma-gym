@@ -25,6 +25,18 @@ register(
     kwargs={'full_observable': True}
 )
 
+# add new environments
+register(
+    id='Checkers-v0',
+    entry_point='ma_gym.envs.checkers:Checkers',
+)
+
+register(
+    id='Checkers-v1',
+    entry_point='ma_gym.envs.checkers:Checkers',
+    kwargs={'full_observable': True}
+)
+
 register(
     id='TrafficJunction-v0',
     entry_point='ma_gym.envs.traffic_junction:TrafficJunction',

@@ -26,23 +26,25 @@ class PredatorPrey(gym.Env):
 
     We modify the general predator-prey, such that a positive reward is given only if multiple predators catch a prey
     simultaneously, requiring a higher degree of cooperation. The predators get a team reward of 1 if two or more
-    catch a prey at the same time, but they are given negative reward −P, if only one predator catches the prey as
-    shown in Figure 7. We experimented with three varying P vales, where P = 0.5, 1.0, 1.5. The terminating condition
-    of this task is when a prey is caught with more than one predator. The prey that has been caught is regenerated
-    at random positions whenever the task terminates, and the game proceeds over fixed 100 steps.
+    catch a prey at the same time, but they are given negative reward −P.We experimented with three varying P vales,
+    where P = 0.5, 1.0, 1.5.
+
+    The terminating condition of this task is when all preys are caught by more than one predator.
+    For every new episodes , preys are initalized into random locations. Also, preys never move by themself into
+    predator's neighbourhood
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=[0.175, 0.175, 0.175, 0.175, 0.3],
-                 full_observable=False):
+                 full_observable=False, penalty=-0.5, step_cost=-0.01, prey_capture_reward=5):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
         self.n_preys = n_preys
         self._max_steps = 100
         self._step_count = None
-        self._penalty = -0.5
-        self._step_cost = -0.01
-        self._prey_capture_reward = 5
+        self._penalty = penalty
+        self._step_cost = step_cost
+        self._prey_capture_reward = prey_capture_reward
         self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
@@ -56,6 +58,8 @@ class PredatorPrey(gym.Env):
         self._prey_move_probs = prey_move_probs
         self.viewer = None
         self.full_observable = full_observable
+
+        self.__total_episode_reward = None
 
     def action_space_sample(self):
         return [agent_action_space.sample() for agent_action_space in self.action_space]
@@ -111,6 +115,7 @@ class PredatorPrey(gym.Env):
         return _obs
 
     def reset(self):
+        self.__total_episode_reward = 0
         self.agent_pos = {}
         self.prey_pos = {}
 
@@ -234,7 +239,7 @@ class PredatorPrey(gym.Env):
 
             if predator_neighbour_count >= 1:
                 _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
-                self._prey_alive[prey_i] = not (predator_neighbour_count == 1)
+                self._prey_alive[prey_i] = (predator_neighbour_count == 1)
 
                 for agent_i in range(self.n_agents):
                     rewards[agent_i] += _reward
@@ -259,6 +264,11 @@ class PredatorPrey(gym.Env):
         #     print(row)
         # print('*********')
         # self.render()
+        # self.__total_episode_reward += sum(rewards)
+        # if self.__total_episode_reward > self._prey_capture_reward * self.n_agents:
+        #     print(self.__total_episode_reward)
+        #     pass
+        # self._prev_terminal = self
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 

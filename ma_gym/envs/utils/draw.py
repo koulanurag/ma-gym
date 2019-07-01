@@ -28,7 +28,9 @@ def draw_grid(rows, cols, cell_size=50, fill='black'):
     return image
 
 
-def fill_cell(image, pos, cell_size=50, fill='black', margin=0):
+def fill_cell(image, pos, cell_size=None, fill='black', margin=0):
+    assert cell_size is not None and 0 <= margin <= 1
+
     col, row = pos
     row, col = row * cell_size, col * cell_size
     margin *= cell_size

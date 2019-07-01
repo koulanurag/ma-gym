@@ -34,7 +34,11 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete u
 - Combat
 - Traffic Junction
 
-``` Note : openai's environment can be accessed in multi agent form by prefix "ma_". Eg: ma_CartPole-v0, This returns an instance of CartPole-v0 wrapped around multi agent wrapper with single agent. These environments could be used for debugging"```
+```
+Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0
+This returns an instance of CartPole-v0 wrapped around multi agent wrapper with single agent. 
+These environments could be used for debugging
+```
 
 Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more details
 

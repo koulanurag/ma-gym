@@ -27,12 +27,12 @@ env.close()
 Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete usage details
 
 ## Environments:
-- CrossOver
-- Fetch
-- Checkers
-- PredatorPrey
-- Combat
-- Traffic Junction
+- [x] CrossOver
+- [ ] Fetch
+- [x] Checkers
+- [x] PredatorPrey
+- [ ] Combat
+- [ ] Traffic Junction
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0

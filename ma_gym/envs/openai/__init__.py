@@ -7,12 +7,13 @@ class MultiAgentWrapper(gym.Wrapper):
 
     def __init__(self, name):
         super().__init__(gym.make(name))
+        self.n_agents = 1
         self.action_space = MultiAgentActionSpace([self.env.action_space])
 
-    def step(self, action):
-        assert len(action) == 1
+    def step(self, action_n):
+        assert len(action_n) == self.n_agents
 
-        action = action[0]
+        action = action_n[0]
         obs, reward, done, info = self.env.step(action)
 
         # Following is a hack:

@@ -19,14 +19,15 @@ class CrossOver(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False):
+    def __init__(self, full_observable=False, step_cost=0):
         self.obs_size = 1
         self._grid_shape = (2, 8)
         self.n_agents = 2
         self._max_steps = 100
         self._step_count = None
+        self._step_cost = step_cost
 
-        self.action_space =  MultiAgentActionSpace([spaces.Discrete(5) for _ in range(2)])  # l,r,t,d,noop
+        self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(2)])  # l,r,t,d,noop
         self.final_agent_pos = {0: [0, 7], 1: [0, 0]}  # they have to go in opposite direction
         self.init_agent_pos = {0: [1, 2], 1: [1, 5]}
 
@@ -121,7 +122,7 @@ class CrossOver(gym.Env):
 
     def step(self, agents_action):
         self._step_count += 1
-        rewards = [0 for _ in range(self.n_agents)]
+        rewards = [self._step_cost for _ in range(self.n_agents)]
         for agent_i, action in enumerate(agents_action):
             if not (self._agent_dones[agent_i]):
                 self.__update_agent_pos(agent_i, action)

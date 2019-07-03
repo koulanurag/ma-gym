@@ -17,12 +17,13 @@ for env_id in env_ids:
 register(
     id='CrossOver-v0',
     entry_point='ma_gym.envs.crossover:CrossOver',
+    kwards={'step_cost': -0.5}
 )
 
 register(
     id='CrossOver-v1',
     entry_point='ma_gym.envs.crossover:CrossOver',
-    kwargs={'full_observable': True}
+    kwargs={'full_observable': True, 'step_cost': -0.5}
 )
 
 # add new environments

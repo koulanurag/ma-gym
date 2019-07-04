@@ -33,6 +33,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete u
 - [x] PredatorPrey
 - [ ] Combat
 - [ ] Traffic Junction
+- [x] Pong Duel _(two play pong game)_
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0

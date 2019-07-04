@@ -5,9 +5,10 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
-from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle
+from ..utils.draw import draw_grid, fill_cell
 import copy
 from ..utils.action_space import MultiAgentActionSpace
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -40,73 +41,84 @@ class Combat(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, grid_shape=(14, 14), n_agents=10, n_max=10, p_arrive=0.5, full_observable=False):
+    def __init__(self, grid_shape=(15, 15), n_agents=5, n_opponents=5, init_health=3, full_observable=False):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
-        self._max_steps = 100
+        self._n_opponents = n_opponents
+        self._max_steps = 40
+        self._step_cost = 0
         self._step_count = None
 
-        self.action_space = MultiAgentActionSpace([spaces.Discrete(2) for _ in range(self.n_agents)])
-        self.agent_pos = {}
+        self.action_space = MultiAgentActionSpace(
+            [spaces.Discrete(5 + self._n_opponents) for _ in range(self.n_agents)])
+        self.agent_pos = {_: None for _ in range(self.n_agents)}
+        self.agent_prev_pos = {_: None for _ in range(self.n_agents)}
+        self.opp_pos = {_: None for _ in range(self.n_agents)}
+        self.opp_prev_pos = {_: None for _ in range(self.n_agents)}
 
-        self._base_grid = self.__create_grid()  # with no agents
-        self._full_obs = self.__create_grid()
-        self._base_img = self.__draw_base_img()
-        self._agent_dones = [False for _ in range(self.n_agents)]
+        self._init_health = init_health
 
         self.viewer = None
         self._n_agents_routes = None
         self.full_observable = full_observable
 
     def get_agent_obs(self):
-        _obs = []
-        for agent_i in range(self.n_agents):
-            pos = self.agent_pos[agent_i]
-
-            # agent id
-            _agent_i_obs = [0 for _ in range(self.n_agents)]
-            _agent_i_obs[agent_i] = 1
-
-            # location
-            _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
-
-            _obs.append(_agent_i_obs)
-
-        if self.full_observable:
-            _obs = np.array(_obs).flatten().tolist()
-            _obs = [_obs for _ in range(self.n_agents)]
-        return _obs
-
-    def __draw_base_img(self):
-        # create grid and make everything black
-        img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill=WALL_COLOR)
-
-        # draw tracks
-        for i, row in enumerate(self._base_grid):
-            for j, col in enumerate(row):
-                if col == PRE_IDS['empty']:
-                    fill_cell(img, (i, j), cell_size=CELL_SIZE, fill='white', margin=0.05)
-        return img
+        pass
 
     def __create_grid(self):
-        _grid = [[PRE_IDS['wall'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
-        _grid[self._grid_shape[0] // 2 - 1] = [PRE_IDS['empty'] for _ in range(self._grid_shape[1])]
-        _grid[self._grid_shape[0] // 2] = [PRE_IDS['empty'] for _ in range(self._grid_shape[1])]
-
-        for row in range(self._grid_shape[0]):
-            _grid[row][self._grid_shape[1] // 2 - 1] = PRE_IDS['empty']
-            _grid[row][self._grid_shape[1] // 2] = PRE_IDS['empty']
-
+        _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
         return _grid
+
+    def __draw_base_img(self):
+        self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
+
+    def __update_agent_view(self, agent_i):
+        self._full_obs[self.agent_prev_pos[agent_i][0]][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
+        self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
+
+    def __update_opp_view(self, opp_i):
+        self._full_obs[self.opp_prev_pos[opp_i][0]][self.opp_prev_pos[opp_i][1]] = PRE_IDS['empty']
+        self._full_obs[self.opp_pos[opp_i][0]][self.opp_pos[opp_i][1]] = PRE_IDS['opponent'] + str(opp_i + 1)
+
+    def __init_full_obs(self):
+        self._full_obs = self.__create_grid()
+
+        # randomly select agent pos
+        for agent_i in range(self.n_agents):
+            while True:
+                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                if self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty']:
+                    self.agent_prev_pos[agent_i] = pos
+                    self.agent_pos[agent_i] = pos
+                    self.__update_agent_view(agent_i)
+                    break
+
+        # randomly select opponent pos
+        for opp_i in range(self._n_opponents):
+            while True:
+                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                if self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty']:
+                    self.opp_prev_pos[opp_i] = pos
+                    self.opp_pos[opp_i] = pos
+                    self.__update_opp_view(opp_i)
+                    break
+
+        self.__draw_base_img()
 
     def reset(self):
         self._step_count = 0
-        self._agent_dones = [False for _ in range(self.n_agents)]
-        self._n_agents_routes = np.random.choice(range(len(self._routes)))
+        self.__total_episode_reward = 0
+        self.__init_full_obs()
         return self.get_agent_obs()
 
     def render(self, mode='human'):
         img = copy.copy(self._base_img)
+
+        for agent_i in range(self.n_agents):
+            fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
+        for opp_i in range(self._n_opponents):
+            fill_cell(img, self.opp_pos[opp_i], cell_size=CELL_SIZE, fill=OPPONENT_COLOR)
+
         img = np.asarray(img)
 
         if mode == 'rgb_array':
@@ -117,6 +129,14 @@ class Combat(gym.Env):
                 self.viewer = rendering.SimpleImageViewer()
             self.viewer.imshow(img)
             return self.viewer.isopen
+
+    def step(self, agents_action):
+        assert len(agents_action) == self.n_agents
+
+        self._step_count += 1
+        rewards = [self._step_cost for _ in range(self.n_agents)]
+        self._agent_dones = [False for _ in range(self.n_agents)]
+        return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def seed(self, n):
         self.np_random, seed1 = seeding.np_random(n)
@@ -129,16 +149,23 @@ class Combat(gym.Env):
             self.viewer = None
 
 
-CELL_SIZE = 30
+CELL_SIZE = 20
 
 WALL_COLOR = 'black'
+AGENT_COLOR = 'red'
+OPPONENT_COLOR = 'blue'
 
 ACTION_MEANING = {
-    0: "GAS",
-    1: "BRAKE",
+    0: "DOWN",
+    1: "LEFT",
+    2: "UP",
+    3: "RIGHT",
+    4: "NOOP",
 }
 
 PRE_IDS = {
     'wall': 'W',
-    'empty': '0'
+    'empty': '0',
+    'agent': 'A',
+    'opponent': 'X',
 }

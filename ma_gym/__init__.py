@@ -17,7 +17,7 @@ for env_id in env_ids:
 register(
     id='CrossOver-v0',
     entry_point='ma_gym.envs.crossover:CrossOver',
-    kwards={'step_cost': -0.5}
+    kwargs={'step_cost': -0.5}
 )
 
 register(
@@ -46,6 +46,10 @@ register(
 register(
     id='Combat-v0',
     entry_point='ma_gym.envs.combat:Combat',
+)
+register(
+    id='PongDuel-v0',
+    entry_point='ma_gym.envs.pong_duel:PongDuel',
 )
 
 for game_info in [[(5, 5), 2, 1], [(7, 7), 4, 2]]:  # [(grid_shape, predator_n, prey_n),..]

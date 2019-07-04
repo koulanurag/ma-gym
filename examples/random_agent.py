@@ -5,7 +5,7 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Random Agent for ma-gym')
-    parser.add_argument('--env', default='Checkers-v0',
+    parser.add_argument('--env', default='PongDuel-v0',
                         help='Name of the environment (default: %(default)s)')
     parser.add_argument('--episodes', type=int, default=1,
                         help='episodes (default: %(default)s)')
@@ -17,12 +17,13 @@ if __name__ == '__main__':
         done_n = [False for _ in range(env.n_agents)]
         ep_reward = 0
 
+        env.seed(ep_i)
         obs_n = env.reset()
         env.render()
+
         while not all(done_n):
             action_n = env.action_space.sample()
             obs_n, reward_n, done_n, _ = env.step(action_n)
-            print(reward_n)
             ep_reward += sum(reward_n)
             env.render()
 

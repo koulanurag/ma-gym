@@ -5,7 +5,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
-from ..utils.draw import draw_grid, fill_cell
+from ..utils.draw import draw_grid, fill_cell, write_cell_text
 import copy
 from ..utils.action_space import MultiAgentActionSpace
 import random
@@ -51,15 +51,18 @@ class Combat(gym.Env):
 
         self.action_space = MultiAgentActionSpace(
             [spaces.Discrete(5 + self._n_opponents) for _ in range(self.n_agents)])
+
         self.agent_pos = {_: None for _ in range(self.n_agents)}
         self.agent_prev_pos = {_: None for _ in range(self.n_agents)}
         self.opp_pos = {_: None for _ in range(self.n_agents)}
         self.opp_prev_pos = {_: None for _ in range(self.n_agents)}
 
         self._init_health = init_health
+        self.agent_health = {_: None for _ in range(self.n_agents)}
+        self.opp_health = {_: None for _ in range(self._n_opponents)}
+        self._agent_dones = [None for _ in range(self.n_agents)]
 
         self.viewer = None
-        self._n_agents_routes = None
         self.full_observable = full_observable
 
     def get_agent_obs(self):
@@ -108,6 +111,10 @@ class Combat(gym.Env):
     def reset(self):
         self._step_count = 0
         self.__total_episode_reward = 0
+        self.agent_health = {_: self._init_health for _ in range(self.n_agents)}
+        self.opp_health = {_: self._init_health for _ in range(self._n_opponents)}
+        self._agent_dones = [False for _ in range(self.n_agents)]
+
         self.__init_full_obs()
         return self.get_agent_obs()
 
@@ -116,8 +123,12 @@ class Combat(gym.Env):
 
         for agent_i in range(self.n_agents):
             fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
+            write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
+                            fill='white', margin=0.3)
         for opp_i in range(self._n_opponents):
             fill_cell(img, self.opp_pos[opp_i], cell_size=CELL_SIZE, fill=OPPONENT_COLOR)
+            write_cell_text(img, text=str(opp_i + 1), pos=self.opp_pos[opp_i], cell_size=CELL_SIZE,
+                            fill='white', margin=0.3)
 
         img = np.asarray(img)
 
@@ -135,7 +146,11 @@ class Combat(gym.Env):
 
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
-        self._agent_dones = [False for _ in range(self.n_agents)]
+
+        # step overflow or all opponents dead
+        if self._step_count >= self._max_steps or sum(self.opp_health) == 0:
+            self._agent_dones = [True for _ in range(self.n_agents)]
+
         return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def seed(self, n):

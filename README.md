@@ -48,7 +48,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more detai
 | :----: |:----:|:---:|
 |![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
 |__Fetch-v0__|__Combat-v0__|__TrafficJunction-v0__|
-|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
+|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Combat.gif)|![CrossOver](static/gif/CrossOver.gif)|
 |__PongDuel-v0__|||
 |![PongDuel](static/gif/PongDuel.gif)|||
 

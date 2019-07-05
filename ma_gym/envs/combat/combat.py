@@ -32,6 +32,7 @@ class Combat(gym.Env):
     The bot policy is to attack the nearest enemy agent if it is within its firing range. If not,
     it approaches the nearest visible enemy agent within visual range. An agent is visible to all bots if it
     is inside the visual range of any individual bot. This shared vision gives an advantage to the bot team.
+
     When input to a model, each agent is represented by a set of one-hot binary vectors {i, t, l, h, c}
     encoding its unique ID, team ID, location, health points and cooldown. A model controlling an agent
     also sees other agents in its visual range (3 × 3 surrounding area). The model gets reward of -1 if the
@@ -143,11 +144,75 @@ class Combat(gym.Env):
             self.viewer.imshow(img)
             return self.viewer.isopen
 
+    def __update_agent_pos(self, agent_i, move):
+
+        curr_pos = copy.copy(self.agent_pos[agent_i])
+        next_pos = None
+        if move == 0:  # down
+            next_pos = [curr_pos[0] + 1, curr_pos[1]]
+        elif move == 1:  # left
+            next_pos = [curr_pos[0], curr_pos[1] - 1]
+        elif move == 2:  # up
+            next_pos = [curr_pos[0] - 1, curr_pos[1]]
+        elif move == 3:  # right
+            next_pos = [curr_pos[0], curr_pos[1] + 1]
+        elif move == 4:  # no-op
+            pass
+        else:
+            raise Exception('Action Not found!')
+
+        if next_pos is not None and self._is_cell_vacant(next_pos):
+            self.agent_pos[agent_i] = next_pos
+            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+            self.__update_agent_view(agent_i)
+
+    def __update_opp_pos(self, opp_i, move):
+
+        curr_pos = copy.copy(self.opp_pos[opp_i])
+        next_pos = None
+        if move == 0:  # down
+            next_pos = [curr_pos[0] + 1, curr_pos[1]]
+        elif move == 1:  # left
+            next_pos = [curr_pos[0], curr_pos[1] - 1]
+        elif move == 2:  # up
+            next_pos = [curr_pos[0] - 1, curr_pos[1]]
+        elif move == 3:  # right
+            next_pos = [curr_pos[0], curr_pos[1] + 1]
+        elif move == 4:  # no-op
+            pass
+        else:
+            raise Exception('Action Not found!')
+
+        if next_pos is not None and self._is_cell_vacant(next_pos):
+            self.opp_pos[opp_i] = next_pos
+            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+            self.__update_opp_view(opp_i)
+
+    def is_valid(self, pos):
+        return (0 <= pos[0] < self._grid_shape[0]) and (0 <= pos[1] < self._grid_shape[1])
+
+    def _is_cell_vacant(self, pos):
+        return self.is_valid(pos) and (self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty'])
+
     def step(self, agents_action):
         assert len(agents_action) == self.n_agents
 
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
+
+        for agent_i, action in enumerate(agents_action):
+            if self.agent_health[agent_i]>0:
+                if action <= 4:
+                    self.__update_agent_pos(agent_i, action)
+                else:
+                    pass
+
+        for opp_i, action in enumerate(agents_action):
+            if self.opp_health[opp_i]>0:
+                if action <= 4:
+                    self.__update_opp_pos(opp_i, action)
+                else:
+                    pass
 
         # step overflow or all opponents dead
         if self._step_count >= self._max_steps or sum(self.opp_health) == 0:

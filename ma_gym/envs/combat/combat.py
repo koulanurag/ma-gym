@@ -231,7 +231,7 @@ class Combat(gym.Env):
             self.viewer = None
 
 
-CELL_SIZE = 20
+CELL_SIZE = 15
 
 WALL_COLOR = 'black'
 AGENT_COLOR = 'red'

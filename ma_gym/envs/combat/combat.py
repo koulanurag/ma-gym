@@ -11,6 +11,7 @@ from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
 from ..utils.draw import draw_grid, fill_cell, write_cell_text
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +65,35 @@ class Combat(gym.Env):
         self.agent_health = {_: None for _ in range(self.n_agents)}
         self.opp_health = {_: None for _ in range(self._n_opponents)}
         self._agent_dones = [None for _ in range(self.n_agents)]
-
+        self._agent_cool = {_: None for _ in range(self.n_agents)}
+        self._opp_cool = {_: None for _ in range(self._n_opponents)}
+        self._total_episode_reward = None
         self.viewer = None
         self.full_observable = full_observable
 
+    @staticmethod
+    def _one_hot_encoding(i, n):
+        x = np.zeros(n)
+        x[i] = 1
+        return x.tolist()
+
     def get_agent_obs(self):
-        pass
+        """
+        When input to a model, each agent is represented by a set of one-hot binary vectors {i, t, l, h, c}
+        encoding its unique ID, team ID, location, health points and cooldown.
+        A model controlling an agent also sees other agents in its visual range (3 × 3 surrounding area).
+        :return:
+        """
+        _obs = []
+        for agent_i in range(self.n_agents):
+            pos = self.agent_pos[agent_i]
+
+            _agent_i_obs = self._one_hot_encoding(agent_i, self.n_agents)
+            _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
+            _agent_i_obs += [self.agent_health[agent_i]]
+            _agent_i_obs += [1 if self._agent_cool else 0]  # flag if agent is cooling down
+
+        return _obs
 
     def __create_grid(self):
         _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
@@ -113,9 +137,11 @@ class Combat(gym.Env):
 
     def reset(self):
         self._step_count = 0
-        self.__total_episode_reward = 0
+        self._total_episode_reward = 0
         self.agent_health = {_: self._init_health for _ in range(self.n_agents)}
         self.opp_health = {_: self._init_health for _ in range(self._n_opponents)}
+        self._agent_cool = {_: True for _ in range(self.n_agents)}
+        self._opp_cool = {_: True for _ in range(self._n_opponents)}
         self._agent_dones = [False for _ in range(self.n_agents)]
 
         self.__init_full_obs()
@@ -125,13 +151,16 @@ class Combat(gym.Env):
         img = copy.copy(self._base_img)
 
         for agent_i in range(self.n_agents):
-            fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
-            write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
-                            fill='white', margin=0.3)
+            if self.agent_health[agent_i] > 0:
+                fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
+                write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
+                                fill='white', margin=0.3)
+
         for opp_i in range(self._n_opponents):
-            fill_cell(img, self.opp_pos[opp_i], cell_size=CELL_SIZE, fill=OPPONENT_COLOR)
-            write_cell_text(img, text=str(opp_i + 1), pos=self.opp_pos[opp_i], cell_size=CELL_SIZE,
-                            fill='white', margin=0.3)
+            if self.opp_health[opp_i] > 0:
+                fill_cell(img, self.opp_pos[opp_i], cell_size=CELL_SIZE, fill=OPPONENT_COLOR)
+                write_cell_text(img, text=str(opp_i + 1), pos=self.opp_pos[opp_i], cell_size=CELL_SIZE,
+                                fill='white', margin=0.3)
 
         img = np.asarray(img)
 
@@ -194,25 +223,128 @@ class Combat(gym.Env):
     def _is_cell_vacant(self, pos):
         return self.is_valid(pos) and (self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty'])
 
+    @staticmethod
+    def is_visible(source_pos, target_pos):
+        """
+        Checks if the target_pos is in the visible range(5x5)
+
+        :param source_pos: Coordinates of the source
+        :param target_pos: Coordinates of the target
+        :return:
+        """
+        return (source_pos[0] - 2) <= target_pos[0] <= (source_pos[0] + 2) \
+               and (source_pos[1] - 2) <= target_pos[1] <= (source_pos[1] + 2)
+
+    @staticmethod
+    def is_fireable(source_pos, target_pos):
+        """
+        Checks if the target_pos is in the firing range(5x5)
+
+        :param source_pos: Coordinates of the source
+        :param target_pos: Coordinates of the target
+        :return:
+        """
+        return (source_pos[0] - 1) <= target_pos[0] <= (source_pos[0] + 1) \
+               and (source_pos[1] - 1) <= target_pos[1] <= (source_pos[1] + 1)
+
+    def reduce_distance_move(self, source_pos, target_pos):
+
+        # Todo: makes moves Enum
+        _moves = []
+        if source_pos[0] > target_pos[0]:
+            _moves.append('UP')
+        elif source_pos[0] < target_pos[0]:
+            _moves.append('DOWN')
+
+        if source_pos[1] > target_pos[1]:
+            _moves.append('LEFT')
+        elif source_pos[1] < target_pos[1]:
+            _moves.append('RIGHT')
+
+        move = random.choice(_moves)
+        for k, v in ACTION_MEANING.items():
+            if move.lower() == v.lower():
+                move = k
+                break
+        return move
+
+    @property
+    def opps_action(self):
+        """
+        Opponent bots follow a hardcoded policy.
+
+        The bot policy is to attack the nearest enemy agent if it is within its firing range. If not,
+        it approaches the nearest visible enemy agent within visual range. An agent is visible to all bots if it
+        is inside the visual range of any individual bot. This shared vision gives an advantage to the bot team.
+
+        :return:
+        """
+
+        visible_agents = set([])
+        opp_agent_distance = {_: [] for _ in range(self._n_opponents)}
+
+        for agent_i, agent_pos in self.agent_pos.items():
+            for opp_i, opp_pos in self.opp_pos.items():
+                if agent_i not in visible_agents and self.is_visible(opp_pos, agent_pos):
+                    visible_agents.add(agent_i)
+                distance = abs(agent_pos[0] - opp_pos[0]) + abs(agent_pos[1] - opp_pos[1])  # manhattan distance
+                opp_agent_distance[opp_i].append([distance, agent_i])
+
+        opp_action_n = []
+        for opp_i in range(self._n_opponents):
+            # Todo: resolve in case the list is empty : This can happen when agent is not visible to anyone
+            action = None
+            for _, agent_i in sorted(opp_agent_distance[opp_i]):
+                if agent_i in visible_agents:
+                    if self.is_fireable(self.opp_pos[opp_i], self.agent_pos[agent_i]):
+                        action = agent_i + 5
+                    else:
+                        action = self.reduce_distance_move(self.opp_pos[opp_i], self.agent_pos[agent_i])
+                    break
+
+            opp_action_n.append(action)
+
+        return opp_action_n
+
     def step(self, agents_action):
         assert len(agents_action) == self.n_agents
 
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
 
+        # What's the confusion?
+        # What if agents attack each other at the same time? Should both of them be effected?
+        # Ans: I guess, yes
+        # What if other agent moves before the attack is perforend in the same time-step.
+        # Ans: May be, I can process all the attack actions before move directions to ensure attacks have their effect.
+
+        # processing attacks
+        agent_health, opp_health = copy.copy(self.agent_health), copy.copy(self.opp_health)
         for agent_i, action in enumerate(agents_action):
-            if self.agent_health[agent_i]>0:
+            if self.agent_health[agent_i] > 0:
+                if action > 4:  # attack actions
+                    target_opp = action - 5
+                    if self.is_fireable(self.agent_pos[agent_i], self.opp_pos[target_opp]):
+                        opp_health[target_opp] -= 1
+
+        opp_action = self.opps_action
+        for opp_i, action in enumerate(opp_action):
+            if self.opp_health[opp_i] > 0:
+                if action > 4:  # attack actions
+                    target_agent = action - 5
+                    agent_health[target_agent] -= 1
+        self.agent_health, self.opp_health = agent_health, opp_health
+
+        # process move actions
+        for agent_i, action in enumerate(agents_action):
+            if self.agent_health[agent_i] > 0:
                 if action <= 4:
                     self.__update_agent_pos(agent_i, action)
-                else:
-                    pass
 
-        for opp_i, action in enumerate(agents_action):
-            if self.opp_health[opp_i]>0:
+        for opp_i, action in enumerate(opp_action):
+            if self.opp_health[opp_i] > 0:
                 if action <= 4:
                     self.__update_opp_pos(opp_i, action)
-                else:
-                    pass
 
         # step overflow or all opponents dead
         if self._step_count >= self._max_steps or sum(self.opp_health) == 0:

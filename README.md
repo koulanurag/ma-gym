@@ -45,16 +45,12 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more detai
 
 ## Zoo!
 |PredatorPrey5x5-v0|Checkers-v0|CrossOver-v0|
-| ---- |----|---|
+| :----: |:----:|:---:|
 |![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
-
-|Fetch-v0|Combat-v0|TrafficJunction-v0|
-| ---- |----|---|
+|__Fetch-v0__|__Combat-v0__|__TrafficJunction-v0__|
 |![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
-
-|PongDuel-v0|
-| ---- |
-|![PongDuel](static/gif/PongDuel.gif)|
+|__PongDuel-v0__|||
+|![PongDuel](static/gif/PongDuel.gif)|||
 
 
 

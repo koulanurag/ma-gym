@@ -1,13 +1,15 @@
+import copy
 import logging
+import random
+
 import gym
+import numpy as np
+from PIL import ImageColor
 from gym import spaces
 from gym.utils import seeding
-import numpy as np
-from ..utils.draw import draw_grid, fill_cell, draw_circle
+
 from ..utils.action_space import MultiAgentActionSpace
-import copy
-import random
-from PIL import ImageColor
+from ..utils.draw import draw_grid, fill_cell, draw_circle
 
 logger = logging.getLogger(__name__)
 

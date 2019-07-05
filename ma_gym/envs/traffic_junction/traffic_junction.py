@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
-import numpy as np
-from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle
 import copy
+import logging
+
+import gym
+import numpy as np
+from gym import spaces
+from gym.utils import seeding
+
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.draw import draw_grid, fill_cell
 
 logger = logging.getLogger(__name__)
 

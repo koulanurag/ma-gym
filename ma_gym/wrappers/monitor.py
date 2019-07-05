@@ -1,7 +1,10 @@
+import os
+
+import six
+from gym import error, logger
+from gym.utils import closer
 from gym.wrappers import Monitor as MO
-from gym import error, version, logger
-import os, json, numpy as np, six
-from gym.utils import atomic_write, closer
+
 from ma_gym.wrappers.monitoring import stats_recorder
 
 FILE_PREFIX = 'openaigym'

@@ -45,14 +45,12 @@ These environments are helpful during debugging.
 Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more details
 
 ## Zoo!
-|PredatorPrey5x5-v0|Checkers-v0|CrossOver-v0|
-| :----: |:----:|:---:|
-|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
-|__Fetch-v0__|__Combat-v0__|__Switch1-v0__|
-|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Combat.gif)|![Switch1](static/gif/Switch1.gif)|
-|__PongDuel-v0__|||
-|![PongDuel](static/gif/PongDuel.gif)|||
 
+| __Checkers-v0__ | __Combat-v0__ | __PongDuel-v0__ |
+|:---:|:---:|:---:|
+|![Checkers-v0.gif](static/gif/Checkers-v0.gif)|![Combat-v0.gif](static/gif/Combat-v0.gif)|![PongDuel-v0.gif](static/gif/PongDuel-v0.gif)|
+| __PredatorPrey5x5-v0__ | __PredatorPrey7x7-v0__ | __Switch1-v0__ |
+|![PredatorPrey5x5-v0.gif](static/gif/PredatorPrey5x5-v0.gif)|![PredatorPrey7x7-v0.gif](static/gif/PredatorPrey7x7-v0.gif)|![Switch1-v0.gif](static/gif/Switch1-v0.gif)|
 
 
 

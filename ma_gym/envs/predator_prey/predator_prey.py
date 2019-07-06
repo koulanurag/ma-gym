@@ -9,7 +9,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
-from ..utils.draw import draw_grid, fill_cell, draw_circle
+from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 
 logger = logging.getLogger(__name__)
 
@@ -295,10 +295,14 @@ class PredatorPrey(gym.Env):
 
         for agent_i in range(self.n_agents):
             draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR)
+            write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
+                            fill='white', margin=0.4)
 
         for prey_i in range(self.n_preys):
             if self._prey_alive[prey_i]:
                 draw_circle(img, self.prey_pos[prey_i], cell_size=CELL_SIZE, fill=PREY_COLOR)
+                write_cell_text(img, text=str(prey_i + 1), pos=self.prey_pos[prey_i], cell_size=CELL_SIZE,
+                                fill='white', margin=0.4)
 
         img = np.asarray(img)
         if mode == 'rgb_array':
@@ -325,7 +329,7 @@ AGENT_COLOR = ImageColor.getcolor('blue', mode='RGB')
 AGENT_NEIGHBORHOOD_COLOR = (186, 238, 247)
 PREY_COLOR = 'red'
 
-CELL_SIZE = 40
+CELL_SIZE = 35
 
 WALL_COLOR = 'black'
 

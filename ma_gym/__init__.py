@@ -27,7 +27,6 @@ register(
     kwargs={'full_observable': True, 'step_cost': -0.5}
 )
 
-# add new environments
 register(
     id='Checkers-v0',
     entry_point='ma_gym.envs.checkers:Checkers',
@@ -37,6 +36,11 @@ register(
     id='Checkers-v1',
     entry_point='ma_gym.envs.checkers:Checkers',
     kwargs={'full_observable': True}
+)
+
+register(
+    id='Switch1-v0',
+    entry_point='ma_gym.envs.switch:Switch1',
 )
 
 register(

@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import random
 
 import gym
 import numpy as np
@@ -17,8 +18,10 @@ logger = logging.getLogger(__name__)
 class TrafficJunction(gym.Env):
     """
     This consists of a 4-way junction on a 14 × 14 grid. At each time step, new cars enter the grid with
-    probability `p_arrive` from each of the four directions. However, the total number
-    of cars at any given time is limited to `Nmax = 10`. Each car occupies a single cell at any given time
+    probability `p_arrive` from each of the four directions. However, the total number of cars at any given
+    time is limited to `Nmax = 10`.
+
+    Each car occupies a single cell at any given time
     and is randomly assigned to one of three possible routes (keeping to the right-hand side of the road).
     At every time step, a car has two possible actions: gas which advances it by one cell on its route or
     brake to stay at its current location. A car will be removed once it reaches its destination at the edge
@@ -41,26 +44,24 @@ class TrafficJunction(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, grid_shape=(14, 14), n_agents=10, n_max=10, p_arrive=0.5, full_observable=False):
+    def __init__(self, grid_shape=(14, 14), n_agents=10, n_max=10, arrive_prob=0.5, full_observable=False):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
         self._max_steps = 100
         self._step_count = None
         self._collision_reward = -10
+        self._total_episode_reward = None
+        self._arrive_prob = arrive_prob
+        self._n_max = n_max
 
-        # each element in routes is the start and end coordinates of the route
-        self._routes = [((7, 0), (0, 7)), ((7, 0), (13, 6)), ((7, 0), (7, 13)),
-                        ((13, 7), (7, 13)), ((13, 7), (0, 7)), ((13, 7), (6, 0)),
-                        ((0, 6), (6, 0)), ((0, 6), (13, 6)), ((0, 6), (7, 13)),
-                        ((6, 13), (13, 6)), ((6, 13), (0, 7)), ((6, 13), (6, 0))]
+        self._entry_gates = [(7, 0), (13, 7), (0, 6), (6, 13)]
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(2) for _ in range(self.n_agents)])
         self.agent_pos = {}
 
-        self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
         self._base_img = self.__draw_base_img()
-        self._agent_dones = [False for _ in range(self.n_agents)]
+        self._agent_dones = [None for _ in range(self.n_agents)]
 
         self.viewer = None
         self._n_agents_routes = None
@@ -100,20 +101,36 @@ class TrafficJunction(gym.Env):
         return img
 
     def __create_grid(self):
+        # create a grid with every cell as wall
         _grid = [[PRE_IDS['wall'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
+
+        # draw track by making cells empty :
+        # horizontal tracks
         _grid[self._grid_shape[0] // 2 - 1] = [PRE_IDS['empty'] for _ in range(self._grid_shape[1])]
         _grid[self._grid_shape[0] // 2] = [PRE_IDS['empty'] for _ in range(self._grid_shape[1])]
 
+        # vertical tracks
         for row in range(self._grid_shape[0]):
             _grid[row][self._grid_shape[1] // 2 - 1] = PRE_IDS['empty']
             _grid[row][self._grid_shape[1] // 2] = PRE_IDS['empty']
 
         return _grid
 
+
+
     def reset(self):
+        self._total_episode_reward = 0
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
-        self._n_agents_routes = np.random.choice(range(len(self._routes)))
+
+        self._full_obs = self.__create_grid()
+        self.curr_cars_count=0
+
+        # sample cars for each location
+        for gates in self._entry_gates:
+            if self.curr_cars_count <= self._n_max and random.random() < self._arrive_prob:
+                pass
+
         return self.get_agent_obs()
 
     def render(self, mode='human'):

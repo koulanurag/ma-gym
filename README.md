@@ -31,9 +31,10 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete u
 - [ ] Fetch
 - [x] Checkers
 - [x] PredatorPrey
-- [ ] Combat
+- [x] Combat
 - [ ] Traffic Junction
 - [x] Pong Duel  ```(two player pong game)```
+- [x] Switch
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0
@@ -47,8 +48,8 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more detai
 |PredatorPrey5x5-v0|Checkers-v0|CrossOver-v0|
 | :----: |:----:|:---:|
 |![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Checkers.gif)|![CrossOver](static/gif/CrossOver.gif)|
-|__Fetch-v0__|__Combat-v0__|__TrafficJunction-v0__|
-|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Combat.gif)|![CrossOver](static/gif/CrossOver.gif)|
+|__Fetch-v0__|__Combat-v0__|__Switch1-v0__|
+|![PredatorPrey](static/gif/PredatorPrey5x5.gif)|![Checkers](static/gif/Combat.gif)|![Switch1](static/gif/Switch1.gif)|
 |__PongDuel-v0__|||
 |![PongDuel](static/gif/PongDuel.gif)|||
 

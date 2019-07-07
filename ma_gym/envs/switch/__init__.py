@@ -1,1 +1,1 @@
-from .switch_one_corridor import Switch1
+from .switch_one_corridor import Switch

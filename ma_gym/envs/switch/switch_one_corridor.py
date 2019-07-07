@@ -12,7 +12,7 @@ from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle, w
 logger = logging.getLogger(__name__)
 
 
-class Switch1(gym.Env):
+class Switch(gym.Env):
     """
     A simple environment to cross over the path of the other agent  (collaborative)
 
@@ -31,9 +31,10 @@ class Switch1(gym.Env):
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 
-        self.init_agent_pos = {0: [0, 1], 1: [2, 1], 2: [0, self._grid_shape[1] - 2], 3: [2, self._grid_shape[1] - 2]}
-        self.final_agent_pos = {0: [0, self._grid_shape[1] - 1], 1: [2, self._grid_shape[1] - 1],
-                                2: [0, 0], 3: [2, 0]}  # they have to go in opposite direction
+        self.init_agent_pos = {0: [0, 1], 1: [0, self._grid_shape[1] - 2],
+                               2: [2, 1], 3: [2, self._grid_shape[1] - 2]}
+        self.final_agent_pos = {0: [0, self._grid_shape[1] - 1], 1: [0, 0],
+                                2: [2, self._grid_shape[1] - 1], 3: [2, 0]}  # they have to go in opposite direction
 
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
@@ -49,7 +50,7 @@ class Switch1(gym.Env):
                 if self.__wall_exists((row, col)):
                     fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=WALL_COLOR)
 
-        for agent_i, pos in self.final_agent_pos.items():
+        for agent_i, pos in list(self.final_agent_pos.items())[:self.n_agents]:
             row, col = pos[0], pos[1]
             draw_cell_outline(self._base_img, (row, col), cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
 
@@ -144,7 +145,7 @@ class Switch1(gym.Env):
     def render(self, mode='human'):
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
-            draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i],radius=0.3)
+            draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i], radius=0.3)
             write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
                             fill='white', margin=0.4)
         img = np.asarray(img)

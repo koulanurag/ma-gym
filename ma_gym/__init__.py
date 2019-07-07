@@ -6,6 +6,7 @@ from gym.envs.registration import register
 logger = logging.getLogger(__name__)
 
 # Register openai's environments as multi agent
+# This should be done before registering new environments
 env_ids = [env_spec.id for env_spec in envs.registry.all()]
 for env_id in env_ids:
     register(
@@ -14,34 +15,30 @@ for env_id in env_ids:
         kwargs={'name': env_id}
     )
 
-# add new environments
-register(
-    id='CrossOver-v0',
-    entry_point='ma_gym.envs.crossover:CrossOver',
-    kwargs={'step_cost': -0.5}
-)
+# add new environments : iterate over full observability
+for i, observability in enumerate([False, True]):
+    register(
+        id='CrossOver-v' + str(i),
+        entry_point='ma_gym.envs.crossover:CrossOver',
+        kwargs={'full_observable': observability, 'step_cost': -0.5}
+    )
 
-register(
-    id='CrossOver-v1',
-    entry_point='ma_gym.envs.crossover:CrossOver',
-    kwargs={'full_observable': True, 'step_cost': -0.5}
-)
+    register(
+        id='Checkers-v' + str(i),
+        entry_point='ma_gym.envs.checkers:Checkers',
+        kwargs={'full_observable': observability}
+    )
 
-register(
-    id='Checkers-v0',
-    entry_point='ma_gym.envs.checkers:Checkers',
-)
-
-register(
-    id='Checkers-v1',
-    entry_point='ma_gym.envs.checkers:Checkers',
-    kwargs={'full_observable': True}
-)
-
-register(
-    id='Switch1-v0',
-    entry_point='ma_gym.envs.switch:Switch1',
-)
+    register(
+        id='Switch2-v' + str(i),
+        entry_point='ma_gym.envs.switch:Switch',
+        kwargs={'n_agents': 2, 'full_observable': observability}
+    )
+    register(
+        id='Switch4-v' + str(i),
+        entry_point='ma_gym.envs.switch:Switch',
+        kwargs={'n_agents': 4, 'full_observable': observability}
+    )
 
 register(
     id='TrafficJunction-v0',

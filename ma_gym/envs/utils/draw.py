@@ -61,3 +61,10 @@ def draw_circle(image, pos, cell_size=50, fill='black', radius=0.3):
     x, y = row + gap, col + gap
     x_dash, y_dash = row + cell_size - gap, col + cell_size - gap
     ImageDraw.Draw(image).ellipse([(x, y), (x_dash, y_dash)], outline=fill, fill=fill)
+
+
+def draw_border(image, border_width=1, fill='black'):
+    width, height = image.size
+    new_im = Image.new("RGB", size=(width + 2 * border_width, height + 2 * border_width), color=fill)
+    new_im.paste(image, (border_width, border_width))
+    return new_im

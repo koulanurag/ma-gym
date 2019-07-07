@@ -7,7 +7,7 @@ import numpy as np
 from gym import spaces
 
 from ..utils.action_space import MultiAgentActionSpace
-from ..utils.draw import draw_grid, fill_cell
+from ..utils.draw import draw_grid, fill_cell, draw_border
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,8 @@ class PongDuel(gym.Env):
         fill_cell(img, ball_cells[0], cell_size=CELL_SIZE, fill=BALL_HEAD_COLOR)
         fill_cell(img, ball_cells[1], cell_size=CELL_SIZE, fill=BALL_TAIL_COLOR)
         fill_cell(img, ball_cells[2], cell_size=CELL_SIZE, fill=BALL_TAIL_COLOR)
+
+        img = draw_border(img, border_width=2, fill='gray')
 
         img = np.asarray(img)
         if mode == 'rgb_array':

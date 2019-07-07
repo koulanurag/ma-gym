@@ -11,7 +11,6 @@ from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
 from ..utils.draw import draw_grid, fill_cell, write_cell_text
-import math
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +91,8 @@ class Combat(gym.Env):
             _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
             _agent_i_obs += [self.agent_health[agent_i]]
             _agent_i_obs += [1 if self._agent_cool else 0]  # flag if agent is cooling down
+
+        # Todo: add visual range informarion
 
         return _obs
 
@@ -301,7 +302,9 @@ class Combat(gym.Env):
                     else:
                         action = self.reduce_distance_move(self.opp_pos[opp_i], self.agent_pos[agent_i])
                     break
-
+            if action is None:
+                print('No visible agent')
+                action = random.choice(range(5))
             opp_action_n.append(action)
 
         return opp_action_n
@@ -326,6 +329,7 @@ class Combat(gym.Env):
                     target_opp = action - 5
                     if self.is_fireable(self.agent_pos[agent_i], self.opp_pos[target_opp]):
                         opp_health[target_opp] -= 1
+                        rewards[agent_i] += 1
 
         opp_action = self.opps_action
         for opp_i, action in enumerate(opp_action):
@@ -333,6 +337,7 @@ class Combat(gym.Env):
                 if action > 4:  # attack actions
                     target_agent = action - 5
                     agent_health[target_agent] -= 1
+                    rewards[target_agent] -= 1
         self.agent_health, self.opp_health = agent_health, opp_health
 
         # process move actions

@@ -30,6 +30,7 @@ class PongDuel(gym.Env):
         self.agent_pos = {_: None for _ in range(self.n_agents)}
         self._agent_dones = None
         self.ball_pos = None
+        self.__rounds = None
 
         self.curr_ball_dir = None
         self.viewer = None
@@ -39,11 +40,13 @@ class PongDuel(gym.Env):
         return _grid
 
     def __update_agent_view(self, agent_i):
-        for row in range(self.agent_pos[agent_i][0] - PADDLE_SIZE, self.agent_pos[agent_i][0] + PADDLE_SIZE + 1):
+        for row in range(self.agent_prev_pos[agent_i][0] - PADDLE_SIZE,
+                         self.agent_prev_pos[agent_i][0] + PADDLE_SIZE + 1):
             self._full_obs[row][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
 
         for row in range(self.agent_pos[agent_i][0] - PADDLE_SIZE, self.agent_pos[agent_i][0] + PADDLE_SIZE + 1):
-            self._full_obs[row][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
+            self._full_obs[row][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1) \
+                                                              + '_' + str(row - self.agent_pos[agent_i][0])
 
     def __update_ball_view(self):
         self._full_obs[self.ball_pos[0]][self.ball_pos[1]] = PRE_IDS['ball']
@@ -69,7 +72,7 @@ class PongDuel(gym.Env):
 
     def __init_ball_pos(self):
         self.ball_pos = [random.randint(5, self._grid_shape[0] - 5), random.randint(10, self._grid_shape[1] - 10)]
-        self.curr_ball_dir = random.choice(BALL_DIRECTIONS)
+        self.curr_ball_dir = random.choice(['NW', 'SW', 'SE', 'NE'])
 
     def reset(self):
         self.__rounds = 0
@@ -148,24 +151,47 @@ class PongDuel(gym.Env):
 
         if self.ball_pos[0] <= 1:
             self.curr_ball_dir = 'SE' if self.curr_ball_dir == 'NE' else 'SW'
-        elif self.ball_pos[0] >= self._grid_shape[0] - 2:
-            self.curr_ball_dir = 'NE' if self.curr_ball_dir == 'SE' else 'SW'
+        elif self.ball_pos[0] >= (self._grid_shape[0] - 2):
+            self.curr_ball_dir = 'NE' if self.curr_ball_dir == 'SE' else 'NW'
         elif PRE_IDS['agent'] in self._full_obs[self.ball_pos[0]][self.ball_pos[1] + 1]:
-            self.curr_ball_dir = random.choice(['NW', 'SW', 'W'])
+            edge = int(self._full_obs[self.ball_pos[0]][self.ball_pos[1] + 1].split('_')[1])
+            _dir = ['NW', 'W', 'SW']
+            if edge <= 0:
+                _p = [0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge))),
+                      0.5 - (0.5 / PADDLE_SIZE * (abs(edge))),
+                      0.25 - (0.25 / PADDLE_SIZE * (abs(edge))), ]
+            elif edge >= 0:
+                _p = [0.25 - (0.25 / PADDLE_SIZE * (abs(edge))),
+                      0.5 - (0.5 / PADDLE_SIZE * (abs(edge))),
+                      0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge)))]
+            _p[len(_dir) // 2] += 1 - sum(_p)
+
+            self.curr_ball_dir = np.random.choice(_dir, p=_p)
         elif PRE_IDS['agent'] in self._full_obs[self.ball_pos[0]][self.ball_pos[1] - 1]:
-            self.curr_ball_dir = random.choice(['NE', 'SE', 'E'])
+            _dir = ['NE', 'E', 'SE']
+            edge = int(self._full_obs[self.ball_pos[0]][self.ball_pos[1] - 1].split('_')[1])
+            if edge <= 0:
+                _p = [0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge))),
+                      0.5 - (0.5 / PADDLE_SIZE * (abs(edge))),
+                      0.25 - (0.25 / PADDLE_SIZE * (abs(edge))), ]
+            elif edge >= 0:
+                _p = [0.25 - (0.25 / PADDLE_SIZE * (abs(edge))),
+                      0.5 - (0.5 / PADDLE_SIZE * (abs(edge))),
+                      0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge)))]
+            _p[len(_dir) // 2] += 1 - sum(_p)
+            self.curr_ball_dir = np.random.choice(_dir, p=_p)
 
         if self.curr_ball_dir == 'E':
             new_ball_pos = self.ball_pos[0], self.ball_pos[1] + 1
-        if self.curr_ball_dir == 'W':
+        elif self.curr_ball_dir == 'W':
             new_ball_pos = self.ball_pos[0], self.ball_pos[1] - 1
-        if self.curr_ball_dir == 'NE':
+        elif self.curr_ball_dir == 'NE':
             new_ball_pos = self.ball_pos[0] - 1, self.ball_pos[1] + 1
-        if self.curr_ball_dir == 'NW':
+        elif self.curr_ball_dir == 'NW':
             new_ball_pos = self.ball_pos[0] - 1, self.ball_pos[1] - 1
-        if self.curr_ball_dir == 'SE':
+        elif self.curr_ball_dir == 'SE':
             new_ball_pos = self.ball_pos[0] + 1, self.ball_pos[1] + 1
-        if self.curr_ball_dir == 'SW':
+        elif self.curr_ball_dir == 'SW':
             new_ball_pos = self.ball_pos[0] + 1, self.ball_pos[1] - 1
 
         self.ball_pos = new_ball_pos
@@ -176,10 +202,10 @@ class PongDuel(gym.Env):
         rewards = [self._step_cost for _ in range(self.n_agents)]
 
         # if ball is beyond paddle, initiate a new round
-        if self.ball_pos[1] == 0:
+        if self.ball_pos[1] < 1:
             rewards = [0, self.reward]
             self.__rounds += 1
-        elif self.ball_pos[1] == self._grid_shape[1] - 1:
+        elif self.ball_pos[1] >= (self._grid_shape[1] - 1):
             rewards = [self.reward, 0]
             self.__rounds += 1
 
@@ -190,7 +216,7 @@ class PongDuel(gym.Env):
             for agent_i in range(self.n_agents):
                 self.__update_agent_pos(agent_i, action_n[agent_i])
 
-            if self.ball_pos[1] in [0, self._grid_shape[1] - 1]:
+            if (self.ball_pos[1] < 1) or (self.ball_pos[1] >= self._grid_shape[1] - 1):
                 self.__init_ball_pos()
             else:
                 self.__update_ball_pos()

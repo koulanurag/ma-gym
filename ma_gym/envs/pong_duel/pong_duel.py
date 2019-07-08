@@ -68,7 +68,23 @@ class PongDuel(gym.Env):
         self.__draw_base_img()
 
     def get_agent_obs(self):
-        pass
+        _obs = []
+
+        for agent_i in range(self.n_agents):
+            pos = self.agent_pos[agent_i]
+            _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]]
+
+            pos = self.ball_pos
+            _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]]
+
+            _ball_dir = [0 for _ in range(len(BALL_DIRECTIONS))]
+            _ball_dir[BALL_DIRECTIONS.index(self.curr_ball_dir)] = 1
+
+            _agent_i_obs += _ball_dir  # one hot ball dir encoding
+
+            _obs.append(_agent_i_obs)
+
+        return _obs
 
     def __init_ball_pos(self):
         self.ball_pos = [random.randint(5, self._grid_shape[0] - 5), random.randint(10, self._grid_shape[1] - 10)]

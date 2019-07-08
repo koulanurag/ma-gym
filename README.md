@@ -24,12 +24,11 @@ while not all(done_n):
 env.close()
 ```
 
-Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete usage details
+Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Usage) for complete usage details
 
 ## Environments:
 - [x] Checkers
 - [x] Combat
-- [ ] Fetch
 - [x] PredatorPrey
 - [x] Pong Duel  ```(two player pong game)```
 - [x] Switch
@@ -41,7 +40,7 @@ This returns an instance of CartPole-v0 wrapped around multi agent from having a
 These environments are helpful during debugging.
 ```
 
-Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for more details
+Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Envioronments) for more details.
 
 ## Zoo!
 

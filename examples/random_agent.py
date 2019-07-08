@@ -6,7 +6,7 @@ from ma_gym.wrappers import Monitor
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Random Agent for ma-gym')
-    parser.add_argument('--env', default='Combat-v0',
+    parser.add_argument('--env', default='Switch2-v0',
                         help='Name of the environment (default: %(default)s)')
     parser.add_argument('--episodes', type=int, default=1,
                         help='episodes (default: %(default)s)')
@@ -27,7 +27,7 @@ if __name__ == '__main__':
             obs_n, reward_n, done_n, info = env.step(action_n)
             ep_reward += sum(reward_n)
             env.render()
-            print(reward_n, info)
+            # print(reward_n, info)
 
         print('Episode #{} Reward: {}'.format(ep_i, ep_reward))
     env.close()

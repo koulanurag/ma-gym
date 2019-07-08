@@ -21,11 +21,11 @@ class Switch(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=0, n_agents=4):
+    def __init__(self, full_observable=False, step_cost=0, n_agents=4,max_steps=50):
         self.obs_size = 1
-        self._grid_shape = (3, 10)
+        self._grid_shape = (3, 7)
         self.n_agents = n_agents
-        self._max_steps = 200
+        self._max_steps = max_steps
         self._step_count = None
         self._step_cost = step_cost
 
@@ -73,7 +73,7 @@ class Switch(gym.Env):
         for agent_i in range(0, self.n_agents):
             pos = self.agent_pos[agent_i]
             _agent_i_obs = [(pos[0] + 1) / self._grid_shape[0], (pos[1] + 1) / (self._grid_shape[1])]
-            _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
+            # _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

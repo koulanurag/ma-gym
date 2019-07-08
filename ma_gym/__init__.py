@@ -32,12 +32,12 @@ for i, observability in enumerate([False, True]):
     register(
         id='Switch2-v' + str(i),
         entry_point='ma_gym.envs.switch:Switch',
-        kwargs={'n_agents': 2, 'full_observable': observability}
+        kwargs={'n_agents': 2, 'full_observable': observability, 'step_cost': -0.1}
     )
     register(
         id='Switch4-v' + str(i),
         entry_point='ma_gym.envs.switch:Switch',
-        kwargs={'n_agents': 4, 'full_observable': observability}
+        kwargs={'n_agents': 4, 'full_observable': observability, 'step_cost': -0.1}
     )
 
 register(

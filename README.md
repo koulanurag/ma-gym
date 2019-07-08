@@ -12,7 +12,7 @@ python setup.py install # use 'develop' instead of 'install' if developing the p
 import gym
 import ma_gym
 
-env = gym.make('CrossOver-v0')
+env = gym.make('Switch2-v0')
 done_n = [False for _ in range(env.n_agents)]
 ep_reward = 0
 
@@ -29,7 +29,6 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki) for complete u
 ## Environments:
 - [x] Checkers
 - [x] Combat
-- [x] CrossOver
 - [ ] Fetch
 - [x] PredatorPrey
 - [x] Pong Duel  ```(two player pong game)```

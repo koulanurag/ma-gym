@@ -3,6 +3,8 @@
 *.pyc
 /logs
 /dist
+/build
+/examples/recordings
 *~
 
 # Pycharm

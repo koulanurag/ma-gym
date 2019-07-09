@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class PongDuel(gym.Env):
-    """Two Player Pong Game"""
+    """Two Player Pong Game - Competitive"""
 
     metadata = {'render.modes': ['human', 'rgb_array']}
 

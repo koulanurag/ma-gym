@@ -157,10 +157,6 @@ class Checkers(gym.Env):
 
         for agent_i, action in enumerate(agents_action):
 
-            # for row in self._full_obs:
-            #     print(row)
-            # print('*********')
-
             self.__update_agent_pos(agent_i, action)
 
             if self.agent_pos[agent_i] != self.agent_prev_pos[agent_i]:
@@ -173,18 +169,9 @@ class Checkers(gym.Env):
                 self._full_obs[self.agent_prev_pos[agent_i][0]][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
                 self.__update_agent_view(agent_i)
 
-            # for row in self._full_obs:
-            #     print(row)
-            # print('*********#')
-            # print(self.agent_pos,self.agent_prev_pos)
-
         if self._step_count >= self._max_steps or self.no_food_left():
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
-
-        # for row in self._full_obs:
-        #     print(row)
-        # print('*********')
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 

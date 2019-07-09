@@ -22,6 +22,7 @@ class CrossOver(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, full_observable=False, step_cost=0):
+        logger.warning('This environment has been deprecated and will be removed in the subsequent version!')
         self.obs_size = 1
         self._grid_shape = (2, 8)
         self.n_agents = 2

@@ -237,40 +237,31 @@ class PredatorPrey(gym.Env):
                 self.__update_agent_pos(agent_i, action)
 
         for prey_i in range(self.n_preys):
-            predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
-
-            if predator_neighbour_count >= 1:
-                _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
-                self._prey_alive[prey_i] = (predator_neighbour_count == 1)
-
-                for agent_i in range(self.n_agents):
-                    rewards[agent_i] += _reward
-
-            prey_move = None
             if self._prey_alive[prey_i]:
-                # 5 trails : we sample next move and check if prey (smart) doesn't go in neighbourhood of predator
-                for _ in range(5):
-                    _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
-                    if self._neighbour_agents(self.__next_pos(self.prey_pos[prey_i], _move))[0] == 0:
-                        prey_move = _move
-                        break
-                prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
+                predator_neighbour_count, n_i = self._neighbour_agents(self.prey_pos[prey_i])
 
-            self.__update_prey_pos(prey_i, prey_move)
+                if predator_neighbour_count >= 1:
+                    _reward = self._penalty if predator_neighbour_count == 1 else self._prey_capture_reward
+                    self._prey_alive[prey_i] = (predator_neighbour_count == 1)
 
-        if self._step_count >= self._max_steps or (True not in self._prey_alive):
+                    for agent_i in range(self.n_agents):
+                        rewards[agent_i] += _reward
+
+                prey_move = None
+                if self._prey_alive[prey_i]:
+                    # 5 trails : we sample next move and check if prey (smart) doesn't go in neighbourhood of predator
+                    for _ in range(5):
+                        _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
+                        if self._neighbour_agents(self.__next_pos(self.prey_pos[prey_i], _move))[0] == 0:
+                            prey_move = _move
+                            break
+                    prey_move = 4 if prey_move is None else prey_move  # default is no-op(4)
+
+                self.__update_prey_pos(prey_i, prey_move)
+
+        if (self._step_count >= self._max_steps) or (True not in self._prey_alive):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
-
-        # for row in self._full_obs:
-        #     print(row)
-        # print('*********')
-        # self.render()
-        # self.__total_episode_reward += sum(rewards)
-        # if self.__total_episode_reward > self._prey_capture_reward * self.n_agents:
-        #     print(self.__total_episode_reward)
-        #     pass
-        # self._prev_terminal = self
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 

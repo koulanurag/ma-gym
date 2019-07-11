@@ -25,10 +25,10 @@ class Checkers(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=0):
+    def __init__(self, full_observable=False, step_cost=-0.1, max_steps=100):
         self._grid_shape = (3, 8)
         self.n_agents = 2
-        self._max_steps = 100
+        self._max_steps = max_steps
         self._step_count = None
         self._step_cost = step_cost
 

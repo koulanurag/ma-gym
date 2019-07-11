@@ -40,7 +40,7 @@ This returns an instance of CartPole-v0 wrapped around multi agent from having a
 These environments are helpful during debugging.
 ```
 
-Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Envioronments) for more details.
+Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) for more details.
 
 ## Zoo!
 

@@ -43,6 +43,7 @@ class Checkers(gym.Env):
         self._agent_dones = None
         self.viewer = None
         self.full_observable = full_observable
+        self._food_count = None
 
         self.__total_episode_reward = None
 
@@ -102,7 +103,7 @@ class Checkers(gym.Env):
             _agent_i_obs += _agent_i_neighbour.flatten().tolist()
 
             # adding time
-            _agent_i_obs += [self._step_count / self._max_steps]
+            # _agent_i_obs += [self._step_count / self._max_steps]
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

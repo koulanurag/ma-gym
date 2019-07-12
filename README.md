@@ -4,7 +4,7 @@ Multi Agent Environments for OpenAI gym
 ## Installation
 ```bash
 cd ma-gym
-python setup.py install # use 'develop' instead of 'install' if developing the package
+pip install -e .
 ```
 
 ## Usage:
@@ -53,4 +53,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 |![PredatorPrey7x7-v0.gif](static/gif/PredatorPrey7x7-v0.gif)|||
 
 
-
+## Testing:
+```bash
+pytest
+```

@@ -31,20 +31,19 @@ class Checkers(gym.Env):
         self._max_steps = max_steps
         self._step_count = None
         self._step_cost = step_cost
+        self.full_observable = full_observable
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
         self.init_agent_pos = {0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
         self.agent_reward = {0: {'lemon': -5, 'apple': 5},
                              1: {'lemon': -1, 'apple': 1}}
-        self.agent_prev_pos = None
 
-        self._base_grid = None  # with no agents
+        self.agent_prev_pos = None
+        self._base_grid = None
         self._full_obs = None
         self._agent_dones = None
         self.viewer = None
-        self.full_observable = full_observable
         self._food_count = None
-
         self._total_episode_reward = None
 
     def __draw_base_img(self):
@@ -59,6 +58,7 @@ class Checkers(gym.Env):
                     fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=APPLE_COLOR, margin=0.05)
 
     def __create_grid(self):
+        """create grid and fill in lemon and apple locations. This grid doesn't fill agents location"""
         _grid = []
         for row in range(self._grid_shape[0]):
             if row % 2 == 0:
@@ -82,14 +82,17 @@ class Checkers(gym.Env):
         _obs = []
         for agent_i in range(self.n_agents):
             pos = self.agent_pos[agent_i]
-            _agent_i_obs = [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
+
+            # add coordinates
+            _agent_i_obs = [round(pos[0] / self._grid_shape[0], 2),
+                            round(pos[1] / (self._grid_shape[1] - 1), 2)]
 
             # add 3 x3 mask around the agent current location and share neighbours
             # ( in practice: this information may not be so critical since the map never changes)
             _agent_i_neighbour = np.zeros((3, 3))
             for r in range(pos[0] - 1, pos[0] + 2):
                 for c in range(pos[1] - 1, pos[1] + 2):
-                    if self.is_valid((r, c)) and r != pos[0] and c != pos[1]:
+                    if self.is_valid((r, c)):
                         item = 0
                         if PRE_IDS['lemon'] in self._full_obs[r][c]:
                             item = 1
@@ -174,6 +177,8 @@ class Checkers(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
+        self._total_episode_reward += sum(rewards)
+
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 
     def no_food_left(self):
@@ -230,12 +235,12 @@ ACTION_MEANING = {
 
 # each pre-id should be unique and single char
 PRE_IDS = {
-    'agent': 'A_',
+    'agent': 'A',
     'prey': 'P',
     'wall': 'W',
     'empty': '0',
-    'lemon': 'L',
-    'apple': 'K',
+    'lemon': 'Y',  # yellow color
+    'apple': 'R',  # red color
 }
 
 AGENT_COLORS = {

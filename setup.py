@@ -1,4 +1,5 @@
 from os import path
+
 from setuptools import setup
 
 setup(name='ma_gym',
@@ -12,4 +13,6 @@ setup(name='ma_gym',
       license='MIT',
       install_requires=[x.strip() for x in
                         open(path.join(path.abspath(path.dirname(__file__)), 'requirements.txt')).readlines()],
+      tests_require=['pytest'],
+      python_requires='>=3.5',
       )

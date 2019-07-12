@@ -21,13 +21,14 @@ class Switch(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=0, n_agents=4,max_steps=50):
+    def __init__(self, full_observable=False, step_cost=0, n_agents=4, max_steps=50):
         self.obs_size = 1
         self._grid_shape = (3, 7)
         self.n_agents = n_agents
         self._max_steps = max_steps
         self._step_count = None
         self._step_cost = step_cost
+        self._total_episode_reward = None
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 
@@ -86,6 +87,7 @@ class Switch(gym.Env):
         self.__init_full_obs()
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
+        self._total_episode_reward = 0
         return self.get_agent_obs()
 
     def __wall_exists(self, pos):
@@ -139,6 +141,8 @@ class Switch(gym.Env):
         if self._step_count >= self._max_steps:
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
+
+        self._total_episode_reward += sum(rewards)
 
         return self.get_agent_obs(), rewards, self._agent_dones, {}
 

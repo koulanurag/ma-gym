@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Checkers-v0')
+    env = gym.make('Switch2-v0')
     yield env
     env.close()
 

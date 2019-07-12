@@ -45,7 +45,7 @@ class Checkers(gym.Env):
         self.full_observable = full_observable
         self._food_count = None
 
-        self.__total_episode_reward = None
+        self._total_episode_reward = None
 
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
@@ -114,7 +114,7 @@ class Checkers(gym.Env):
     def reset(self):
         self.__init_full_obs()
         self._step_count = 0
-        self.__total_episode_reward = 0
+        self._total_episode_reward = 0
         self._food_count = {'lemon': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0],
                             'apple': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0]}
         self._agent_dones = [False for _ in range(self.n_agents)]

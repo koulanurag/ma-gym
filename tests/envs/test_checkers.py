@@ -46,10 +46,13 @@ def test_is_valid(env, pos, valid):
 
 
 @pytest.mark.parametrize('action_n,output',
-                         [([1, 1], {'lemon': 7, 'apple': 9})])
+                         [([1, 1],  # action
+                           ([[0.0, 0.71, 0.0, 0.0, 0.0, 2.0, 3.0, 0.0, 1.0, 2.0, 0.0],
+                             [0.67, 0.71, 1.0, 2.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]],  # obs
+                            {'lemon': 7, 'apple': 9}))])  # food_count
 def test_step(env, action_n, output):
     env.reset()
-    food_count = output
+    target_obs_n, food_count = output
     obs_n, reward_n, done_n, info = env.step(action_n)
 
     for k, v in food_count.items():

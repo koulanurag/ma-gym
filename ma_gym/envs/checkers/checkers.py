@@ -127,7 +127,7 @@ class Checkers(gym.Env):
     def is_valid(self, pos):
         return (0 <= pos[0] < self._grid_shape[0]) and (0 <= pos[1] < self._grid_shape[1])
 
-    def _is_cell_vacant(self, pos):
+    def _has_no_agent(self, pos):
         return self.is_valid(pos) and (PRE_IDS['agent'] not in self._full_obs[pos[0]][pos[1]])
 
     def __update_agent_pos(self, agent_i, move):
@@ -147,10 +147,11 @@ class Checkers(gym.Env):
             raise Exception('Action Not found!')
 
         self.agent_prev_pos[agent_i] = self.agent_pos[agent_i]
-        if next_pos is not None and self._is_cell_vacant(next_pos):
+        if next_pos is not None and self._has_no_agent(next_pos):
             self.agent_pos[agent_i] = next_pos
 
     def __update_agent_view(self, agent_i):
+        self._full_obs[self.agent_prev_pos[agent_i][0]][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
         self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
 
     def step(self, agents_action):
@@ -170,7 +171,6 @@ class Checkers(gym.Env):
                         self._food_count[food] -= 1
                         break
 
-                self._full_obs[self.agent_prev_pos[agent_i][0]][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
                 self.__update_agent_view(agent_i)
 
         if self._step_count >= self._max_steps or self.no_food_left():
@@ -183,18 +183,6 @@ class Checkers(gym.Env):
 
     def no_food_left(self):
         return sum([v for k, v in self._food_count.items()]) == 0
-
-    def __get_neighbour_coordinates(self, pos):
-        neighbours = []
-        if self.is_valid([pos[0] + 1, pos[1]]):
-            neighbours.append([pos[0] + 1, pos[1]])
-        if self.is_valid([pos[0] - 1, pos[1]]):
-            neighbours.append([pos[0] - 1, pos[1]])
-        if self.is_valid([pos[0], pos[1] + 1]):
-            neighbours.append([pos[0], pos[1] + 1])
-        if self.is_valid([pos[0], pos[1] - 1]):
-            neighbours.append([pos[0], pos[1] - 1])
-        return neighbours
 
     def render(self, mode='human'):
         for agent_i in range(self.n_agents):

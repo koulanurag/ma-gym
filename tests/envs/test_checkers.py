@@ -1,6 +1,6 @@
 import gym
 import pytest
-
+import ma_gym
 
 @pytest.fixture(scope='module')
 def env():

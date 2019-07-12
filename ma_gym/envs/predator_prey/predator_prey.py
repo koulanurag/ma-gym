@@ -32,7 +32,7 @@ class PredatorPrey(gym.Env):
     where P = 0.5, 1.0, 1.5.
 
     The terminating condition of this task is when all preys are caught by more than one predator.
-    For every new episodes , preys are initalized into random locations. Also, preys never move by themself into
+    For every new episodes , preys are initialized into random locations. Also, preys never move by themself into
     predator's neighbourhood
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
@@ -50,8 +50,8 @@ class PredatorPrey(gym.Env):
         self._agent_view_mask = (5, 5)
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-        self.agent_pos = {}
-        self.prey_pos = {}
+        self.agent_pos = {_: None for _ in range(self.n_agents)}
+        self.prey_pos = {_: None for _ in range(self.n_preys)}
         self._prey_alive = None
 
         self._base_grid = self.__create_grid()  # with no agents
@@ -262,6 +262,8 @@ class PredatorPrey(gym.Env):
         if (self._step_count >= self._max_steps) or (True not in self._prey_alive):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
+
+        self._total_episode_reward += sum(rewards)
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 

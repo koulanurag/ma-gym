@@ -61,7 +61,7 @@ class PredatorPrey(gym.Env):
         self.viewer = None
         self.full_observable = full_observable
 
-        self.__total_episode_reward = None
+        self._total_episode_reward = None
 
     def action_space_sample(self):
         return [agent_action_space.sample() for agent_action_space in self.action_space]
@@ -117,7 +117,7 @@ class PredatorPrey(gym.Env):
         return _obs
 
     def reset(self):
-        self.__total_episode_reward = 0
+        self._total_episode_reward = 0
         self.agent_pos = {}
         self.prey_pos = {}
 

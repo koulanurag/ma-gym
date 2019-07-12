@@ -26,7 +26,7 @@ class PongDuel(gym.Env):
 
         self._step_count = None
         self._step_cost = step_cost
-        self.__total_episode_reward = None
+        self._total_episode_reward = None
         self.agent_pos = {_: None for _ in range(self.n_agents)}
         self._agent_dones = None
         self.ball_pos = None
@@ -100,7 +100,7 @@ class PongDuel(gym.Env):
         self._agent_dones = [False, False]
         self.__init_full_obs()
         self._step_count = 0
-        self.__total_episode_reward = 0
+        self._total_episode_reward = 0
 
         return self.get_agent_obs()
 

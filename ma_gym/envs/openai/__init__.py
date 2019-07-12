@@ -9,6 +9,10 @@ class MultiAgentWrapper(gym.Wrapper):
     def __init__(self, name):
         super().__init__(gym.make(name))
         self.n_agents = 1
+        self._step_count = None
+        self._total_episode_reward = None
+        self._agent_dones = [None for _ in range(self.n_agents)]
+
         self.action_space = MultiAgentActionSpace([self.env.action_space])
 
     def step(self, action_n):
@@ -28,5 +32,9 @@ class MultiAgentWrapper(gym.Wrapper):
         return [obs], [reward], [done], info
 
     def reset(self):
+        self._step_count = 0
+        self._total_episode_reward = 0
+        self._agent_dones = [False for _ in range(self.n_agents)]
+
         obs = self.env.reset()
         return [obs]

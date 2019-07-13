@@ -25,7 +25,7 @@ class Checkers(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=-0.1, max_steps=100):
+    def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100):
         self._grid_shape = (3, 8)
         self.n_agents = 2
         self._max_steps = max_steps
@@ -173,16 +173,13 @@ class Checkers(gym.Env):
 
                 self.__update_agent_view(agent_i)
 
-        if self._step_count >= self._max_steps or self.no_food_left():
+        if self._step_count >= self._max_steps or self._food_count['apple'] == 0:
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
         self._total_episode_reward += sum(rewards)
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
-
-    def no_food_left(self):
-        return sum([v for k, v in self._food_count.items()]) == 0
 
     def render(self, mode='human'):
         for agent_i in range(self.n_agents):

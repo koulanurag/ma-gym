@@ -27,7 +27,6 @@ if __name__ == '__main__':
             obs_n, reward_n, done_n, info = env.step(action_n)
             ep_reward += sum(reward_n)
             env.render()
-            # print(reward_n, info)
 
         print('Episode #{} Reward: {}'.format(ep_i, ep_reward))
     env.close()

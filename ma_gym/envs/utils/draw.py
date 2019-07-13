@@ -16,12 +16,20 @@ def draw_grid(rows, cols, cell_size=50, fill='black', line_color='black'):
         line = ((x, y_start), (x, y_end))
         draw.line(line, fill=line_color)
 
+    x = image.width - 1
+    line = ((x, y_start), (x, y_end))
+    draw.line(line, fill=line_color)
+
     x_start = 0
     x_end = image.width
 
     for y in range(0, image.height, step_size):
         line = ((x_start, y), (x_end, y))
         draw.line(line, fill=line_color)
+
+    y = image.height - 1
+    line = ((x_start, y), (x_end, y))
+    draw.line(line, fill=line_color)
 
     del draw
 

@@ -61,3 +61,14 @@ def test_step(env, action_n, output):
     assert env._step_count == 1
     assert env._total_episode_reward == sum(reward_n), 'Total Episode reward doesn\'t match with one step reward'
     assert env._agent_dones == [False for _ in range(env.n_agents)]
+
+
+def test_reset_after_episode_end(env):
+    env.reset()
+    done = [False for _ in range(env.n_agents)]
+    step_i = 0
+    while not all(done):
+        step_i += 1
+        _, _, done, _ = env.step(env.action_space.sample())
+    assert step_i == env._step_count
+    test_reset(env)

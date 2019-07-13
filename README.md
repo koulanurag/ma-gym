@@ -56,6 +56,6 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 
 
 ## Testing:
-```bash
-pytest
-```
+
+- Install: ```pip install pytest ```
+- Run: ```pytest```

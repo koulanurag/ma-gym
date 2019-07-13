@@ -46,6 +46,13 @@ class Checkers(gym.Env):
         self._food_count = None
         self._total_episode_reward = None
 
+    def get_action_meanings(self, agent_i=None):
+        if agent_i is not None:
+            assert agent_i <= self.n_agents
+            return [ACTION_MEANING[i] for i in range(self.action_space[agent_i].n)]
+        else:
+            return [[ACTION_MEANING[i] for i in range(ac.n)] for ac in self.action_space]
+
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
         for row in range(self._grid_shape[0]):

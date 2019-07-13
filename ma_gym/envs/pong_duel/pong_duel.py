@@ -35,6 +35,13 @@ class PongDuel(gym.Env):
         self.curr_ball_dir = None
         self.viewer = None
 
+    def get_action_meanings(self, agent_i=None):
+        if agent_i is not None:
+            assert agent_i <= self.n_agents
+            return [ACTION_MEANING[i] for i in range(self.action_space[agent_i].n)]
+        else:
+            return [[ACTION_MEANING[i] for i in range(ac.n)] for ac in self.action_space]
+        
     def __create_grid(self):
         _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
         return _grid

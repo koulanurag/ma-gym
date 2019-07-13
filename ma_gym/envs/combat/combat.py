@@ -71,6 +71,20 @@ class Combat(gym.Env):
         self.viewer = None
         self.full_observable = full_observable
 
+    def get_action_meanings(self, agent_i=None):
+        action_meaning = []
+        for _ in range(self.n_agents):
+            meaning = [ACTION_MEANING[i] for i in range(5)]
+            meaning += ['Attack Opponent {}'.format(o) for o in range(self._n_opponents)]
+            action_meaning.append(meaning)
+        if agent_i is not None:
+            assert isinstance(agent_i, int)
+            assert agent_i <= self.n_agents
+
+            return action_meaning[agent_i]
+        else:
+            return action_meaning
+
     @staticmethod
     def _one_hot_encoding(i, n):
         x = np.zeros(n)
@@ -103,7 +117,7 @@ class Combat(gym.Env):
                             PRE_IDS['empty'] not in self._full_obs[row + (pos[0] - 2)][col + (pos[1] - 2)]):
                         x = self._full_obs[row + pos[0] - 2][col + pos[1] - 2]
                         _type = 1 if PRE_IDS['agent'] in x else -1
-                        _id = int(x[1:])-1  # id
+                        _id = int(x[1:]) - 1  # id
                         _agent_i_obs[0][row][col] = _type
                         _agent_i_obs[1][row][col] = _id
                         _agent_i_obs[2][row][col] = self.agent_health[_id] if type == 1 else self.opp_health[_id]

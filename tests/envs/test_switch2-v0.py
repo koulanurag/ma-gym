@@ -44,10 +44,11 @@ def test_reset_after_episode_end(env):
                            ([[0.0, 0.00], [0, 0.83]])  # obs
                            )])
 def test_step(env, action_n, output):
-    env.reset()
+    obs_n = env.reset()
     target_obs_n = output
     obs_n, reward_n, done_n, info = env.step(action_n)
 
     assert env._step_count == 1
     assert env._total_episode_reward == sum(reward_n), 'Total Episode reward doesn\'t match with one step reward'
     assert env._agent_dones == [False for _ in range(env.n_agents)]
+    assert obs_n == target_obs_n

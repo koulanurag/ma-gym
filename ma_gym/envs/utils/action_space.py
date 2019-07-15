@@ -1,5 +1,11 @@
+import gym
+
+
 class MultiAgentActionSpace(list):
     def __init__(self, agents_action_space):
+        for x in agents_action_space:
+            assert isinstance(x, gym.spaces.space.Space)
+
         super(MultiAgentActionSpace, self).__init__(agents_action_space)
         self._agents_action_space = agents_action_space
 

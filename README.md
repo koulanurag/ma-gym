@@ -1,5 +1,5 @@
 # ma-gym
-Multi Agent Environments for OpenAI gym
+A collection of multi agent environments for OpenAI gym.
 
 
 ## Installation

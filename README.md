@@ -1,5 +1,5 @@
 # ma-gym
-Multi Agent Environments for OpenAI gym
+A collection of multi agent environments for OpenAI gym.
 
 [![Build Status](https://travis-ci.com/koulanurag/ma-gym.svg?token=DM2fKnVJXEZDaszt9oHm&branch=master)](https://travis-ci.com/koulanurag/ma-gym)
 

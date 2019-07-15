@@ -1,7 +1,6 @@
 # ma-gym
 Multi Agent Environments for OpenAI gym
 
-[![Build Status](https://travis-ci.com/koulanurag/ma-gym.svg?token=DM2fKnVJXEZDaszt9oHm&branch=master)](https://travis-ci.com/koulanurag/ma-gym)
 
 ## Installation
 ```bash

@@ -2,6 +2,7 @@
 *.egg-info
 *.egg
 *.pyc
+*.coverage
 /logs
 /dist
 /build

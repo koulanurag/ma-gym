@@ -3,7 +3,7 @@ from os import listdir
 from os.path import join
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Random Agent for ma-gym')
+    parser = argparse.ArgumentParser(description='Generate Markdown table for ReadMe')
     parser.add_argument('--path', default='../static/gif/',
                         help='Path (default: %(default)s)')
     args = parser.parse_args()

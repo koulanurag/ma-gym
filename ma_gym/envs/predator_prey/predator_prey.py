@@ -124,7 +124,7 @@ class PredatorPrey(gym.Env):
         return _obs
 
     def reset(self):
-        self._total_episode_reward = 0
+        self._total_episode_reward = [0 for _ in range(self.n_agents)]
         self.agent_pos = {}
         self.prey_pos = {}
 
@@ -270,7 +270,8 @@ class PredatorPrey(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        self._total_episode_reward += sum(rewards)
+        for i in range(self.n_agents):
+            self._total_episode_reward[i] += rewards[i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 

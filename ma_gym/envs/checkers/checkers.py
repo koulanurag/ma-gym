@@ -124,7 +124,7 @@ class Checkers(gym.Env):
     def reset(self):
         self.__init_full_obs()
         self._step_count = 0
-        self._total_episode_reward = 0
+        self._total_episode_reward = [0 for _ in range(self.n_agents)]
         self._food_count = {'lemon': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0],
                             'apple': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0]}
         self._agent_dones = [False for _ in range(self.n_agents)]
@@ -184,7 +184,8 @@ class Checkers(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        self._total_episode_reward += sum(rewards)
+        for i in range(self.n_agents):
+            self._total_episode_reward[i] += rewards[i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 

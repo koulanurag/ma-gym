@@ -189,7 +189,7 @@ class Combat(gym.Env):
 
     def reset(self):
         self._step_count = 0
-        self._total_episode_reward = 0
+        self._total_episode_reward = [0 for _ in range(self.n_agents)]
         self.agent_health = {_: self._init_health for _ in range(self.n_agents)}
         self.opp_health = {_: self._init_health for _ in range(self._n_opponents)}
         self._agent_cool = {_: True for _ in range(self.n_agents)}
@@ -360,7 +360,6 @@ class Combat(gym.Env):
                 action = random.choice(range(5))
             opp_action_n.append(action)
 
-        print('bot:', opp_action_n)
 
         return opp_action_n
 
@@ -423,6 +422,9 @@ class Combat(gym.Env):
                 or (sum([v for k, v in self.opp_health.items()]) == 0) \
                 or (sum([v for k, v in self.agent_health.items()]) == 0):
             self._agent_dones = [True for _ in range(self.n_agents)]
+
+        for i in range(self.n_agents):
+            self._total_episode_reward[i] += rewards[i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'health': self.agent_health}
 

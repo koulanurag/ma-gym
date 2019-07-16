@@ -94,7 +94,7 @@ class Switch(gym.Env):
         self.__init_full_obs()
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
-        self._total_episode_reward = 0
+        self._total_episode_reward = [0 for _ in range(self.n_agents)]
         return self.get_agent_obs()
 
     def __wall_exists(self, pos):
@@ -149,7 +149,8 @@ class Switch(gym.Env):
             for i in range(self.n_agents):
                 self._agent_dones[i] = True
 
-        self._total_episode_reward += sum(rewards)
+        for i in range(self.n_agents):
+            self._total_episode_reward[i] += rewards[i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {}
 

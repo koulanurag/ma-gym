@@ -41,7 +41,7 @@ class PongDuel(gym.Env):
             return [ACTION_MEANING[i] for i in range(self.action_space[agent_i].n)]
         else:
             return [[ACTION_MEANING[i] for i in range(ac.n)] for ac in self.action_space]
-        
+
     def __create_grid(self):
         _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
         return _grid
@@ -107,7 +107,7 @@ class PongDuel(gym.Env):
         self._agent_dones = [False, False]
         self.__init_full_obs()
         self._step_count = 0
-        self._total_episode_reward = 0
+        self._total_episode_reward = [0 for _ in range(self.n_agents)]
 
         return self.get_agent_obs()
 
@@ -243,6 +243,9 @@ class PongDuel(gym.Env):
                 self.__init_ball_pos()
             else:
                 self.__update_ball_pos()
+
+        for i in range(self.n_agents):
+            self._total_episode_reward[i] += rewards[i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'rounds': self.__rounds}
 

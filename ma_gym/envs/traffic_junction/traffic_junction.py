@@ -116,15 +116,13 @@ class TrafficJunction(gym.Env):
 
         return _grid
 
-
-
     def reset(self):
         self._total_episode_reward = 0
         self._step_count = 0
         self._agent_dones = [False for _ in range(self.n_agents)]
 
         self._full_obs = self.__create_grid()
-        self.curr_cars_count=0
+        self.curr_cars_count = 0
 
         # sample cars for each location
         for gates in self._entry_gates:

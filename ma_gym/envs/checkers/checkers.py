@@ -7,7 +7,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
-from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
+from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text, draw_score_board
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +196,10 @@ class Checkers(gym.Env):
             draw_circle(self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
             write_cell_text(self._base_img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
                             fill='white', margin=0.4)
+
+        # adds a score board on top of the image
+        # img = draw_score_board(self._base_img, score=self._total_episode_reward)
+        # img = np.asarray(img)
 
         img = np.asarray(self._base_img)
         if mode == 'rgb_array':

@@ -76,3 +76,13 @@ def draw_border(image, border_width=1, fill='black'):
     new_im = Image.new("RGB", size=(width + 2 * border_width, height + 2 * border_width), color=fill)
     new_im.paste(image, (border_width, border_width))
     return new_im
+
+
+def draw_score_board(image, score, board_height=30):
+    im_width, im_height = image.size
+    new_im = Image.new("RGB", size=(im_width, im_height + board_height), color='#e1e4e8')
+    new_im.paste(image, (0, board_height))
+
+    _text = ', '.join([str(round(x, 2)) for x in score])
+    ImageDraw.Draw(new_im).text((10, board_height // 3), text=_text, fill='black')
+    return new_im

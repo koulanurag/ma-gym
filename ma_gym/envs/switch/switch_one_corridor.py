@@ -13,12 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class Switch(gym.Env):
-    """
-    A simple environment to cross over the path of the other agent  (collaborative)
-
-    Observation Space : Discrete
-    Action Space : Discrete
-    """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, full_observable=False, step_cost=0, n_agents=4, max_steps=50):
@@ -81,7 +75,7 @@ class Switch(gym.Env):
             pos = self.agent_pos[agent_i]
             _agent_i_obs = [round(pos[0] / (self._grid_shape[0] - 1), 2),
                             round(pos[1] / (self._grid_shape[1] - 1), 2)]
-            # _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
+            _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

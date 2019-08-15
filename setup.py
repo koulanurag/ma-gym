@@ -10,7 +10,7 @@ setup(name='ma_gym',
       author='Anurag Koul',
       author_email='koulanurag@gmail.com',
       long_description=open(path.join(path.abspath(path.dirname(__file__)), 'README.md')).read(),
-      license='MIT',
+      license=open(path.join(path.abspath(path.dirname(__file__)), 'LICENSE')).read(),
       install_requires=[x.strip() for x in
                         open(path.join(path.abspath(path.dirname(__file__)), 'requirements.txt')).readlines()],
       tests_require=['pytest'],

@@ -1,6 +1,7 @@
 # ma-gym
-A collection of multi agent environments for OpenAI gym.
+A collection of multi agent environments based on OpenAI gym.
 
+[![Build Status](https://travis-ci.com/koulanurag/ma-gym.svg?token=DM2fKnVJXEZDaszt9oHm&branch=master)](https://travis-ci.com/koulanurag/ma-gym)
 
 ## Installation
 ```bash
@@ -57,3 +58,8 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 
 - Install: ```pip install pytest ```
 - Run: ```pytest```
+
+
+## Acknowledgement:
+This project was developed to complement my research internship @ [SAS](https://www.sas.com/en_us/home.html).
+

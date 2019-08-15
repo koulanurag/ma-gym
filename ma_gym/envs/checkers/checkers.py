@@ -45,6 +45,7 @@ class Checkers(gym.Env):
         self.viewer = None
         self._food_count = None
         self._total_episode_reward = None
+        self.steps_beyond_done = None
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:
@@ -186,6 +187,19 @@ class Checkers(gym.Env):
 
         for i in range(self.n_agents):
             self._total_episode_reward[i] += rewards[i]
+
+        # Following snippet of code was refereed from:
+        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py#L124
+        if all(self._agent_dones):
+            self.steps_beyond_done = 0
+        elif self.steps_beyond_done is not None:
+            if self.steps_beyond_done == 0:
+                logger.warning(
+                    "You are calling 'step()' even though this environment has already returned all(dones) = True for "
+                    "all agents. You should always call 'reset()' once you receive 'all(dones) = True' -- any further"
+                    " steps are undefined behavior.")
+            self.steps_beyond_done += 1
+            rewards = [0 for _ in range(self.n_agents)]
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 

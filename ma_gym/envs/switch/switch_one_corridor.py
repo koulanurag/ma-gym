@@ -43,7 +43,7 @@ class Switch(gym.Env):
             return [ACTION_MEANING[i] for i in range(self.action_space[agent_i].n)]
         else:
             return [[ACTION_MEANING[i] for i in range(ac.n)] for ac in self.action_space]
-        
+
     def __draw_base_img(self):
         self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
         for row in range(self._grid_shape[0]):
@@ -75,7 +75,7 @@ class Switch(gym.Env):
             pos = self.agent_pos[agent_i]
             _agent_i_obs = [round(pos[0] / (self._grid_shape[0] - 1), 2),
                             round(pos[1] / (self._grid_shape[1] - 1), 2)]
-            _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
+            # _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

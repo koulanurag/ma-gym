@@ -86,7 +86,15 @@ def test_reset_after_episode_end(env):
 def test_partial_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env.step(env.action_space.sample())
+    assert env.observation_space.contains(obs)
 
 def test_full_observation_space(env_full):
     obs = env_full.reset()
+    assert env_full.observation_space.contains(obs)
+    done = [False for _ in range(env_full.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env_full.step(env_full.action_space.sample())
     assert env_full.observation_space.contains(obs)

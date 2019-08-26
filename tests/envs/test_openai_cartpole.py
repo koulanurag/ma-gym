@@ -35,3 +35,12 @@ def test_reset_after_episode_end(env):
     assert env._step_count == step_i
     assert env._total_episode_reward == ep_reward
     test_reset(env)
+
+
+def test_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env.step(env.action_space.sample())
+    assert env.observation_space.contains(obs)

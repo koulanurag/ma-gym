@@ -10,6 +10,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, write_cell_text
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,11 @@ class Combat(gym.Env):
         self._total_episode_reward = None
         self.viewer = None
         self.full_observable = full_observable
+
+        # 5 * 5 * (type, id, health, cool, x, y)
+        self.obs_low = np.repeat([-1., 0., 0., -1., 0., 0.], 5 * 5)
+        self.obs_high = np.repeat([1., n_opponents, init_health, 1., 1., 1.], 5 * 5)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
 
     def get_action_meanings(self, agent_i=None):
         action_meaning = []

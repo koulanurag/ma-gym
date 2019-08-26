@@ -1,6 +1,7 @@
 import gym
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 
 
 class MultiAgentWrapper(gym.Wrapper):
@@ -14,6 +15,7 @@ class MultiAgentWrapper(gym.Wrapper):
         self._agent_dones = [None for _ in range(self.n_agents)]
 
         self.action_space = MultiAgentActionSpace([self.env.action_space])
+        self.observation_space = MultiAgentObservationSpace([self.env.observation_space])
         self._step_count = 0
 
     def step(self, action_n):

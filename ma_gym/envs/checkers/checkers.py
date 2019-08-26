@@ -7,6 +7,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text, draw_score_board
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,13 @@ class Checkers(gym.Env):
         self.full_observable = full_observable
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
+        self.obs_high = np.array([1.0, 1.0] + [max(OBSERVATION_MEANING.keys())] * 9)
+        self.obs_low = np.array([0.0, 0.0] + [min(OBSERVATION_MEANING.keys())] * 9)
+        if self.full_observable:
+            self.obs_high = np.tile(self.obs_high, self.n_agents)
+            self.obs_low = np.tile(self.obs_low, self.n_agents)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
+
         self.init_agent_pos = {0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
         self.agent_reward = {0: {'lemon': -5, 'apple': 5},
                              1: {'lemon': -1, 'apple': 1}}
@@ -244,6 +252,14 @@ ACTION_MEANING = {
     2: "UP",
     3: "RIGHT",
     4: "NOOP",
+}
+
+OBSERVATION_MEANING = {
+    0: 'empty',
+    1: 'lemon',
+    2: 'apple',
+    3: 'agent',
+    -1: 'wall'
 }
 
 # each pre-id should be unique and single char

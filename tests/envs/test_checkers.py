@@ -9,6 +9,11 @@ def env():
     yield env
     env.close()
 
+@pytest.fixture(scope='module')
+def env_full():
+    env = gym.make('Checkers-v1')
+    yield env
+    env.close
 
 def test_init(env):
     assert env.n_agents == 2
@@ -77,3 +82,11 @@ def test_reset_after_episode_end(env):
     assert step_i == env._step_count
     assert env._total_episode_reward == ep_reward
     test_reset(env)
+
+def test_partial_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+
+def test_full_observation_space(env_full):
+    obs = env_full.reset()
+    assert env_full.observation_space.contains(obs)

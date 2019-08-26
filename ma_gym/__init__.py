@@ -40,10 +40,12 @@ for i, observability in enumerate([False, True]):
         kwargs={'n_agents': 4, 'full_observable': observability, 'step_cost': -0.1}
     )
 
-register(
-    id='TrafficJunction-v0',
-    entry_point='ma_gym.envs.traffic_junction:TrafficJunction',
-)
+    register(
+        id='TrafficJunction-v' + str(i),
+        entry_point='ma_gym.envs.traffic_junction:TrafficJunction',
+        kwargs={'full_observable': observability}
+    )
+
 
 register(
     id='Combat-v0',

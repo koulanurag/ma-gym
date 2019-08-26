@@ -1,0 +1,69 @@
+import gym
+import pytest
+import ma_gym
+
+
+@pytest.fixture(scope='module')
+def env():
+    env = gym.make('TrafficJunction-v0')
+    yield env
+    env.close()
+
+@pytest.fixture(scope='module')
+def env_full():
+    env = gym.make('TrafficJunction-v1')
+    yield env
+    env.close
+
+def test_init(env):
+    assert env.n_agents == 2
+
+
+def test_reset(env):
+    import numpy as np
+    obs_n = env.reset()
+
+    assert env._step_count == 0
+    assert env._total_episode_reward == [0 for _ in range(env.n_agents)]
+    assert env._agent_dones == [False for _ in range(env.n_agents)]
+
+
+def test_step(env, action_n, output):
+    env.reset()
+    obs_n, reward_n, done_n, info = env.step(action_n)
+
+    assert env._step_count == 1
+    assert env._total_episode_reward == reward_n, 'Total Episode reward doesn\'t match with one step reward'
+    assert env._agent_dones == [False for _ in range(env.n_agents)]
+
+
+def test_reset_after_episode_end(env):
+    env.reset()
+    done = [False for _ in range(env.n_agents)]
+    step_i = 0
+    ep_reward = [0 for _ in range(env.n_agents)]
+    while not all(done):
+        step_i += 1
+        _, reward_n, done, _ = env.step(env.action_space.sample())
+        for i in range(env.n_agents):
+            ep_reward[i] += reward_n[i]
+
+    assert step_i == env._step_count
+    assert env._total_episode_reward == ep_reward
+    test_reset(env)
+
+def test_partial_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env.step(env.action_space.sample())
+    assert env.observation_space.contains(obs)
+
+def test_full_observation_space(env_full):
+    obs = env_full.reset()
+    assert env_full.observation_space.contains(obs)
+    done = [False for _ in range(env_full.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env_full.step(env_full.action_space.sample())
+    assert env_full.observation_space.contains(obs)

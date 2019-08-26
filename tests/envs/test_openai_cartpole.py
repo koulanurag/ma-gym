@@ -16,9 +16,9 @@ def test_init(env):
 
 def test_reset(env):
     env.reset()
-    assert env.env._step_count == 0
-    assert env.env._total_episode_reward == [0 for _ in range(env.n_agents)]
-    assert env.env._agent_dones == [False for _ in range(env.n_agents)]
+    assert env._step_count == 0
+    assert env._total_episode_reward == [0 for _ in range(env.n_agents)]
+    assert env._agent_dones == [False for _ in range(env.n_agents)]
 
 
 def test_reset_after_episode_end(env):
@@ -32,6 +32,6 @@ def test_reset_after_episode_end(env):
         for i in range(env.n_agents):
             ep_reward[i] += reward_n[i]
 
-    assert env.env._step_count == step_i
-    assert env.env._total_episode_reward == ep_reward
+    assert env._step_count == step_i
+    assert env._total_episode_reward == ep_reward
     test_reset(env)

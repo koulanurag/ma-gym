@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Register openai's environments as multi agent
 # This should be done before registering new environments
-env_ids = [env_spec.id for env_spec in envs.registry.all()]
+env_ids = [env_spec.id for env_spec in envs.registry.all() if 'gym.envs' in env_spec.entry_point]
 for env_id in env_ids:
     register(
         id='ma_' + env_id,

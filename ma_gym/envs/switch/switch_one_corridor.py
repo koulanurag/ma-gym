@@ -7,6 +7,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle, write_cell_text
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,13 @@ class Switch(gym.Env):
         self.viewer = None
 
         self.full_observable = full_observable
+        # agent pos (2)
+        self.obs_high = np.array([1., 1.])
+        self.obs_low = np.array([0., 0.])
+        if self.full_observable:
+            self.obs_high = np.tile(self.obs_high, self.n_agents)
+            self.obs_low = np.tile(self.obs_low, self.n_agents)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:

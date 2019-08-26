@@ -9,6 +9,12 @@ def env():
     yield env
     env.close()
 
+@pytest.fixture(scope='module')
+def env_full():
+    env = gym.make('PredatorPrey5x5-v1')
+    yield env
+    env.close()
+
 
 def test_init(env):
     assert env.n_agents == 2
@@ -45,3 +51,20 @@ def test_reset_after_episode_end(env):
     assert step_i == env._step_count
     assert env._total_episode_reward == ep_reward
     test_reset(env)
+
+
+def test_partial_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env.step(env.action_space.sample())
+    assert env.observation_space.contains(obs)
+
+def test_full_observation_space(env_full):
+    obs = env_full.reset()
+    assert env_full.observation_space.contains(obs)
+    done = [False for _ in range(env_full.n_agents)]
+    while not all(done):
+        _, reward_n, done, _ = env_full.step(env_full.action_space.sample())
+    assert env_full.observation_space.contains(obs)

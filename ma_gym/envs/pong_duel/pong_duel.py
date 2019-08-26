@@ -7,6 +7,7 @@ import numpy as np
 from gym import spaces
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_border
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,11 @@ class PongDuel(gym.Env):
         self._agent_dones = None
         self.ball_pos = None
         self.__rounds = None
+
+        # agent pos(2), ball pos (2), balldir (6-onehot)
+        self.obs_low = np.array([0., 0., 0., 0.] + [0.] * len(BALL_DIRECTIONS))
+        self.obs_high = np.array([1., 1., 1., 1.] + [1.] * len(BALL_DIRECTIONS))
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high)for _ in range(self.n_agents)])
 
         self.curr_ball_dir = None
         self.viewer = None

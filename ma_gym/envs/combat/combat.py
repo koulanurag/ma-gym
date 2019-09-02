@@ -73,9 +73,9 @@ class Combat(gym.Env):
         self.full_observable = full_observable
 
         # 5 * 5 * (type, id, health, cool, x, y)
-        self.obs_low = np.repeat([-1., 0., 0., -1., 0., 0.], 5 * 5)
-        self.obs_high = np.repeat([1., n_opponents, init_health, 1., 1., 1.], 5 * 5)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
+        self._obs_low = np.repeat([-1., 0., 0., -1., 0., 0.], 5 * 5)
+        self._obs_high = np.repeat([1., n_opponents, init_health, 1., 1., 1.], 5 * 5)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
     def get_action_meanings(self, agent_i=None):
         action_meaning = []

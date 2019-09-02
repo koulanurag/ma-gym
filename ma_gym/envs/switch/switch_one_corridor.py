@@ -38,12 +38,12 @@ class Switch(gym.Env):
 
         self.full_observable = full_observable
         # agent pos (2)
-        self.obs_high = np.array([1., 1.])
-        self.obs_low = np.array([0., 0.])
+        self._obs_high = np.array([1., 1.])
+        self._obs_low = np.array([0., 0.])
         if self.full_observable:
-            self.obs_high = np.tile(self.obs_high, self.n_agents)
-            self.obs_low = np.tile(self.obs_low, self.n_agents)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
+            self._obs_high = np.tile(self._obs_high, self.n_agents)
+            self._obs_low = np.tile(self._obs_low, self.n_agents)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:

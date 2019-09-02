@@ -34,9 +34,9 @@ class PongDuel(gym.Env):
         self.__rounds = None
 
         # agent pos(2), ball pos (2), balldir (6-onehot)
-        self.obs_low = np.array([0., 0., 0., 0.] + [0.] * len(BALL_DIRECTIONS))
-        self.obs_high = np.array([1., 1., 1., 1.] + [1.] * len(BALL_DIRECTIONS))
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high)for _ in range(self.n_agents)])
+        self.__obs_low = np.array([0., 0., 0., 0.] + [0.] * len(BALL_DIRECTIONS))
+        self.__obs_high = np.array([1., 1., 1., 1.] + [1.] * len(BALL_DIRECTIONS))
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.__obs_low, self.__obs_high)for _ in range(self.n_agents)])
 
         self.curr_ball_dir = None
         self.viewer = None

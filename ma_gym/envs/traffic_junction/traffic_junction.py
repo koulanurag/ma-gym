@@ -69,12 +69,12 @@ class TrafficJunction(gym.Env):
         self.full_observable = full_observable
 
         # agent id (n_agents, onehot), pos (2)
-        self.obs_high = np.array([1.0] * self.n_agents + [1.0, 1.0])
-        self.obs_low = np.array([0.0] * self.n_agents + [0.0, 0.0])
+        self._obs_high = np.array([1.0] * self.n_agents + [1.0, 1.0])
+        self._obs_low = np.array([0.0] * self.n_agents + [0.0, 0.0])
         if self.full_observable:
-            self.obs_high = np.tile(self.obs_high, self.n_agents)
-            self.obs_low = np.tile(self.obs_low, self.n_agents)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self.obs_low, self.obs_high) for _ in range(self.n_agents)])
+            self._obs_high = np.tile(self._obs_high, self.n_agents)
+            self._obs_low = np.tile(self._obs_low, self.n_agents)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
     def action_space_sample(self):
         return [agent_action_space.sample() for agent_action_space in self.action_space]

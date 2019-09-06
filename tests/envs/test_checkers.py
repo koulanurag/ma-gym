@@ -1,7 +1,7 @@
 import gym
 import pytest
 import ma_gym
-
+from pytest_cases import pytest_parametrize_plus, fixture_ref
 
 @pytest.fixture(scope='module')
 def env():
@@ -83,18 +83,14 @@ def test_reset_after_episode_end(env):
     assert env._total_episode_reward == ep_reward
     test_reset(env)
 
-def test_partial_observation_space(env):
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env),
+                         fixture_ref(env_full)])
+def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)
     done = [False for _ in range(env.n_agents)]
     while not all(done):
-        _, reward_n, done, _ = env.step(env.action_space.sample())
+        obs, reward_n, done, _ = env.step(env.action_space.sample())
+        assert env.observation_space.contains(obs)
     assert env.observation_space.contains(obs)
-
-def test_full_observation_space(env_full):
-    obs = env_full.reset()
-    assert env_full.observation_space.contains(obs)
-    done = [False for _ in range(env_full.n_agents)]
-    while not all(done):
-        _, reward_n, done, _ = env_full.step(env_full.action_space.sample())
-    assert env_full.observation_space.contains(obs)

@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 
 # Register openai's environments as multi agent
 # This should be done before registering new environments
-env_ids = [env_spec.id for env_spec in envs.registry.all() if 'gym.envs' in env_spec.entry_point]
-for env_id in env_ids:
+env_specs = [env_spec for env_spec in envs.registry.all() if 'gym.envs' in env_spec.entry_point]
+for spec in env_specs:
     register(
-        id='ma_' + env_id,
+        id='ma_' + spec.id,
         entry_point='ma_gym.envs.openai:MultiAgentWrapper',
-        kwargs={'name': env_id}
+        kwargs={'name': spec.id, **spec._kwargs}
     )
 
 # add new environments : iterate over full observability

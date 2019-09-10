@@ -9,6 +9,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,15 @@ class PredatorPrey(gym.Env):
         self._prey_move_probs = prey_move_probs
         self.viewer = None
         self.full_observable = full_observable
+
+        # agent pos (2), prey (25), step (1)
+        mask_size = np.prod(self._agent_view_mask)
+        self._obs_high = np.array([1., 1.] + [1.] * mask_size + [1.0])
+        self._obs_low = np.array([0., 0.] + [0.] * mask_size + [0.0])
+        if self.full_observable:
+            self._obs_high = np.tile(self._obs_high, self.n_agents)
+            self._obs_low = np.tile(self._obs_low, self.n_agents)
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
         self._total_episode_reward = None
 

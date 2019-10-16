@@ -37,7 +37,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Usage) for comp
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0
-This returns an instance of CartPole-v0 wrapped around multi agent from having a single agent. 
+This returns an instance of CartPole-v0 in "multi agent wrapper" having a single agent. 
 These environments are helpful during debugging.
 ```
 

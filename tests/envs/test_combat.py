@@ -48,3 +48,4 @@ def test_observation_space(env):
         obs, reward_n, done, _ = env.step(env.action_space.sample())
         assert env.observation_space.contains(obs)
     assert env.observation_space.contains(obs)
+    assert env.observation_space.contains(env.observation_space.sample())

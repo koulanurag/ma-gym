@@ -60,6 +60,19 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 - Run: ```pytest```
 
 
+## Reference:
+Please use this bibtex if you would like to cite it:
+```
+@misc{magym,
+      author = {Koul, Anurag},
+      title = {ma-gym: Collection of multi-agent environments based on OpenAI gym.},
+      year = {2019},
+      publisher = {GitHub},
+      journal = {GitHub repository},
+      howpublished = {\url{https://github.com/koulanurag/ma-gym}},
+    }
+```
 ## Acknowledgement:
 This project was developed to complement my research internship @ [SAS](https://www.sas.com/en_us/home.html).
+
 

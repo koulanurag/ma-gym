@@ -238,9 +238,8 @@ class PongDuel(gym.Env):
             rewards = [self.reward, 0]
             self.__rounds += 1
 
-        if self.__rounds > self._max_rounds:
+        if self.__rounds == self._max_rounds:
             self._agent_dones = [True for _ in range(self.n_agents)]
-            rewards = [0 for _ in range(self.n_agents)]
         else:
             for agent_i in range(self.n_agents):
                 self.__update_agent_pos(agent_i, action_n[agent_i])

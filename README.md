@@ -34,6 +34,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Usage) for comp
 - [x] PredatorPrey
 - [x] Pong Duel  ```(two player pong game)```
 - [x] Switch
+- [x] Lumberjacks
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0
@@ -45,14 +46,13 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 
 ## Zoo!
 
-| __Checkers-v0__ | __Switch2-v0__ | __Switch4-v0__ |
+| __Checkers-v0__ | __Combat-v0__ | __Lumberjacks-v0__ |
 |:---:|:---:|:---:|
-|![Checkers-v0.gif](static/gif/Checkers-v0.gif)|![Switch2-v0.gif](static/gif/Switch2-v0.gif)|![Switch4-v0.gif](static/gif/Switch4-v0.gif)|
-| __PongDuel-v0__ | __Combat-v0__ | __PredatorPrey7x7-v0__ |
-|![PongDuel-v0.gif](static/gif/PongDuel-v0.gif)|![Combat-v0.gif](static/gif/Combat-v0.gif)|![PredatorPrey7x7-v0.gif](static/gif/PredatorPrey7x7-v0.gif)|
-|__PredatorPrey5x5-v0__ | | |
-|![PredatorPrey5x5-v0.gif](static/gif/PredatorPrey5x5-v0.gif)|||
-
+|![Checkers-v0.gif](static/gif/Checkers-v0.gif)|![Combat-v0.gif](static/gif/Combat-v0.gif)|![Lumberjacks-v0.gif](static/gif/Lumberjacks-v0.gif)|
+| __PongDuel-v0__ | __PredatorPrey5x5-v0__ | __PredatorPrey7x7-v0__ |
+| ![PongDuel-v0.gif](static/gif/PongDuel-v0.gif) | ![PredatorPrey5x5-v0.gif](static/gif/PredatorPrey5x5-v0.gif) | ![PredatorPrey7x7-v0.gif](static/gif/PredatorPrey7x7-v0.gif) |
+|                 __Switch2-v0__                 |                        __Switch4-v0__                        |                                                              |
+|  ![Switch2-v0.gif](static/gif/Switch2-v0.gif)  |         ![Switch4-v0.gif](static/gif/Switch4-v0.gif)         |                                                              |
 
 ## Testing:
 

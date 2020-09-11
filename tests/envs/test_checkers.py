@@ -1,7 +1,7 @@
 import gym
 import pytest
 import ma_gym
-from pytest_cases import pytest_parametrize_plus, fixture_ref
+from pytest_cases import parametrize_plus, fixture_ref
 
 @pytest.fixture(scope='module')
 def env():
@@ -83,7 +83,7 @@ def test_reset_after_episode_end(env):
     assert env._total_episode_reward == ep_reward
     test_reset(env)
 
-@pytest_parametrize_plus('env',
+@parametrize_plus('env',
                          [fixture_ref(env),
                          fixture_ref(env_full)])
 def test_observation_space(env):

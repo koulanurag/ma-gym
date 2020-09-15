@@ -137,6 +137,7 @@ class Checkers(gym.Env):
         self._food_count = {'lemon': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0],
                             'apple': ((self._grid_shape[1] - 2) // 2) * self._grid_shape[0]}
         self._agent_dones = [False for _ in range(self.n_agents)]
+        self.steps_beyond_done = None
 
         return self.get_agent_obs()
 

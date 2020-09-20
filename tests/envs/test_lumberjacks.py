@@ -1,7 +1,9 @@
 import gym
+import numpy as np
 import pytest
+from pytest_cases import fixture_ref, parametrize_plus
+
 import ma_gym
-from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -21,18 +23,18 @@ def env_full():
 def test_init(env):
     assert env.n_agents == 2
     assert env._n_trees == 12
+    assert env._agent_view == (1, 1)
 
 
 def test_reset(env):
     env.reset()
     assert env._step_count == 0
-    assert len(env._objects_dict) == 2 + 12  # 2 agents + 12 trees
+    assert len(env._agents) == np.sum(env._agent_map)== 2
+    assert np.sum(env._tree_map > 0) == 12
     for agent_id, agent in env._agent_generator():
-        assert agent.done == False
-        assert agent.reward == 0
-    for tree_id, tree in env._tree_generator():
-        assert tree.alive == True
-        assert 0 < tree.strength <= env.n_agents
+        assert env._agent_dones[agent_id] == False, 'Game cannot finished after reset'
+        assert env._total_episode_reward[agent_id] == 0 , 'Total Episode reward doesn\'t match with one step reward'
+    assert np.sum((env._tree_map < 0) & (env._tree_map > 2)) == 0
 
 
 @pytest.mark.parametrize('action_n', [[0, 0]])  # no-op action
@@ -42,8 +44,8 @@ def test_step(env, action_n):
 
     assert env._step_count == 1
     for (agent_id, agent), reward in zip(env._agent_generator(), reward_n):
-        assert agent.done == False, 'Game cannot finished after one step'
-        assert agent.reward == reward, 'Total Episode reward doesn\'t match with one step reward'
+        assert env._agent_dones[agent_id] == False, 'Game cannot finished after one step'
+        assert env._total_episode_reward[agent_id] == reward, 'Total Episode reward doesn\'t match with one step reward'
 
 
 def test_reset_after_episode_end(env):
@@ -59,8 +61,8 @@ def test_reset_after_episode_end(env):
 
     assert step_i == env._step_count
     for (agent_id, agent), reward in zip(env._agent_generator(), ep_reward):
-        assert agent.done == True
-        assert agent.reward == reward, 'Total Episode reward doesn\'t match with one step reward'
+        assert env._agent_dones[agent_id] == True
+        assert env._total_episode_reward[agent_id] == reward, 'Total Episode reward doesn\'t match with one step reward'
     test_reset(env)
 
 

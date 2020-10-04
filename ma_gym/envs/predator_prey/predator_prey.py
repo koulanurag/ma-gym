@@ -1,6 +1,5 @@
 import copy
 import logging
-import random
 
 import gym
 import numpy as np
@@ -72,6 +71,7 @@ class PredatorPrey(gym.Env):
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
         self._total_episode_reward = None
+        self.seed()
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:
@@ -95,7 +95,7 @@ class PredatorPrey(gym.Env):
 
         for agent_i in range(self.n_agents):
             while True:
-                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                pos = [self.np_random.randint(0, self._grid_shape[0] - 1), self.np_random.randint(0, self._grid_shape[1] - 1)]
                 if self._is_cell_vacant(pos):
                     self.agent_pos[agent_i] = pos
                     break
@@ -103,7 +103,7 @@ class PredatorPrey(gym.Env):
 
         for prey_i in range(self.n_preys):
             while True:
-                pos = [random.randint(0, self._grid_shape[0] - 1), random.randint(0, self._grid_shape[1] - 1)]
+                pos = [self.np_random.randint(0, self._grid_shape[0] - 1), self.np_random.randint(0, self._grid_shape[1] - 1)]
                 if self._is_cell_vacant(pos) and (self._neighbour_agents(pos)[0] == 0):
                     self.prey_pos[prey_i] = pos
                     break
@@ -268,7 +268,7 @@ class PredatorPrey(gym.Env):
                 if self._prey_alive[prey_i]:
                     # 5 trails : we sample next move and check if prey (smart) doesn't go in neighbourhood of predator
                     for _ in range(5):
-                        _move = np.random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
+                        _move = self.np_random.choice(len(self._prey_move_probs), 1, p=self._prey_move_probs)[0]
                         if self._neighbour_agents(self.__next_pos(self.prey_pos[prey_i], _move))[0] == 0:
                             prey_move = _move
                             break
@@ -325,10 +325,9 @@ class PredatorPrey(gym.Env):
             self.viewer.imshow(img)
             return self.viewer.isopen
 
-    def seed(self, n):
-        self.np_random, seed1 = seeding.np_random(n)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+    def seed(self, n=None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def close(self):
         if self.viewer is not None:

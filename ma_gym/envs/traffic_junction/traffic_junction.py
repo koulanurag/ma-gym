@@ -2,7 +2,6 @@
 
 import copy
 import logging
-import random
 
 import gym
 import numpy as np
@@ -75,6 +74,7 @@ class TrafficJunction(gym.Env):
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.seed()
 
     def action_space_sample(self):
         return [agent_action_space.sample() for agent_action_space in self.action_space]
@@ -135,7 +135,7 @@ class TrafficJunction(gym.Env):
 
         # sample cars for each location
         for gates in self._entry_gates:
-            if self.curr_cars_count <= self._n_max and random.random() < self._arrive_prob:
+            if self.curr_cars_count <= self._n_max and self.np_random.random() < self._arrive_prob:
                 pass
 
         return self.get_agent_obs()
@@ -153,10 +153,9 @@ class TrafficJunction(gym.Env):
             self.viewer.imshow(img)
             return self.viewer.isopen
 
-    def seed(self, n):
-        self.np_random, seed1 = seeding.np_random(n)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+    def seed(self, n=None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def close(self):
         if self.viewer is not None:

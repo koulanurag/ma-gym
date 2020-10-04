@@ -1,10 +1,10 @@
 import copy
 import logging
-import random
 
 import gym
 import numpy as np
 from gym import spaces
+from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
 from ..utils.observation_space import MultiAgentObservationSpace
@@ -40,6 +40,7 @@ class PongDuel(gym.Env):
 
         self.curr_ball_dir = None
         self.viewer = None
+        self.seed()
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:
@@ -100,13 +101,13 @@ class PongDuel(gym.Env):
         return _obs
 
     def __init_ball_pos(self):
-        self.ball_pos = [random.randint(5, self._grid_shape[0] - 5), random.randint(10, self._grid_shape[1] - 10)]
-        self.curr_ball_dir = random.choice(['NW', 'SW', 'SE', 'NE'])
+        self.ball_pos = [self.np_random.randint(5, self._grid_shape[0] - 5), self.np_random.randint(10, self._grid_shape[1] - 10)]
+        self.curr_ball_dir = self.np_random.choice(['NW', 'SW', 'SE', 'NE'])
 
     def reset(self):
         self.__rounds = 0
-        self.agent_pos[0] = (random.randint(PADDLE_SIZE, self._grid_shape[0] - PADDLE_SIZE - 1), 1)
-        self.agent_pos[1] = (random.randint(PADDLE_SIZE, self._grid_shape[0] - PADDLE_SIZE - 1),
+        self.agent_pos[0] = (self.np_random.randint(PADDLE_SIZE, self._grid_shape[0] - PADDLE_SIZE - 1), 1)
+        self.agent_pos[1] = (self.np_random.randint(PADDLE_SIZE, self._grid_shape[0] - PADDLE_SIZE - 1),
                              self._grid_shape[1] - 2)
         self.agent_prev_pos = {_: self.agent_pos[_] for _ in range(self.n_agents)}
         self.__init_ball_pos()
@@ -195,7 +196,7 @@ class PongDuel(gym.Env):
                       0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge)))]
             _p[len(_dir) // 2] += 1 - sum(_p)
 
-            self.curr_ball_dir = np.random.choice(_dir, p=_p)
+            self.curr_ball_dir = self.np_random.choice(_dir, p=_p)
         elif PRE_IDS['agent'] in self._full_obs[self.ball_pos[0]][self.ball_pos[1] - 1]:
             _dir = ['NE', 'E', 'SE']
             edge = int(self._full_obs[self.ball_pos[0]][self.ball_pos[1] - 1].split('_')[1])
@@ -208,7 +209,7 @@ class PongDuel(gym.Env):
                       0.5 - (0.5 / PADDLE_SIZE * (abs(edge))),
                       0.25 + ((1 - 0.25) / PADDLE_SIZE * (abs(edge)))]
             _p[len(_dir) // 2] += 1 - sum(_p)
-            self.curr_ball_dir = np.random.choice(_dir, p=_p)
+            self.curr_ball_dir = self.np_random.choice(_dir, p=_p)
 
         if self.curr_ball_dir == 'E':
             new_ball_pos = self.ball_pos[0], self.ball_pos[1] + 1
@@ -224,6 +225,10 @@ class PongDuel(gym.Env):
             new_ball_pos = self.ball_pos[0] + 1, self.ball_pos[1] - 1
 
         self.ball_pos = new_ball_pos
+
+    def seed(self, n=None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def step(self, action_n):
         assert len(action_n) == self.n_agents

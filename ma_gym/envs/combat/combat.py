@@ -2,7 +2,6 @@
 
 import copy
 import logging
-import random
 
 import gym
 import numpy as np
@@ -76,6 +75,7 @@ class Combat(gym.Env):
         self._obs_low = np.repeat([-1., 0., 0., -1., 0., 0.], 5 * 5)
         self._obs_high = np.repeat([1., n_opponents, init_health, 1., 1., 1.], 5 * 5)
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.seed()
 
     def get_action_meanings(self, agent_i=None):
         action_meaning = []
@@ -161,12 +161,12 @@ class Combat(gym.Env):
 
         # select agent team center
         # Note : Leaving space from edges so as to have a 5x5 grid around it
-        agent_team_center = random.randint(2, self._grid_shape[0] - 3), random.randint(2, self._grid_shape[1] - 3)
+        agent_team_center = self.np_random.randint(2, self._grid_shape[0] - 3), self.np_random.randint(2, self._grid_shape[1] - 3)
         # randomly select agent pos
         for agent_i in range(self.n_agents):
             while True:
-                pos = [random.randint(agent_team_center[0] - 2, agent_team_center[0] + 2),
-                       random.randint(agent_team_center[1] - 2, agent_team_center[1] + 2)]
+                pos = [self.np_random.randint(agent_team_center[0] - 2, agent_team_center[0] + 2),
+                       self.np_random.randint(agent_team_center[1] - 2, agent_team_center[1] + 2)]
                 if self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty']:
                     self.agent_prev_pos[agent_i] = pos
                     self.agent_pos[agent_i] = pos
@@ -175,7 +175,7 @@ class Combat(gym.Env):
 
         # select opponent team center
         while True:
-            pos = random.randint(2, self._grid_shape[0] - 3), random.randint(2, self._grid_shape[1] - 3)
+            pos = self.np_random.randint(2, self._grid_shape[0] - 3), self.np_random.randint(2, self._grid_shape[1] - 3)
             if self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty']:
                 opp_team_center = pos
                 break
@@ -183,8 +183,8 @@ class Combat(gym.Env):
         # randomly select opponent pos
         for opp_i in range(self._n_opponents):
             while True:
-                pos = [random.randint(opp_team_center[0] - 2, opp_team_center[0] + 2),
-                       random.randint(opp_team_center[1] - 2, opp_team_center[1] + 2)]
+                pos = [self.np_random.randint(opp_team_center[0] - 2, opp_team_center[0] + 2),
+                       self.np_random.randint(opp_team_center[1] - 2, opp_team_center[1] + 2)]
                 if self._full_obs[pos[0]][pos[1]] == PRE_IDS['empty']:
                     self.opp_prev_pos[opp_i] = pos
                     self.opp_pos[opp_i] = pos
@@ -321,7 +321,7 @@ class Combat(gym.Env):
         elif source_pos[1] < target_pos[1]:
             _moves.append('RIGHT')
 
-        move = random.choice(_moves)
+        move = self.np_random.choice(_moves)
         for k, v in ACTION_MEANING.items():
             if move.lower() == v.lower():
                 move = k
@@ -363,7 +363,7 @@ class Combat(gym.Env):
                     break
             if action is None:
                 logger.info('No visible agent for enemy:{}'.format(opp_i))
-                action = random.choice(range(5))
+                action = self.np_random.choice(range(5))
             opp_action_n.append(action)
 
 
@@ -434,10 +434,9 @@ class Combat(gym.Env):
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'health': self.agent_health}
 
-    def seed(self, n):
-        self.np_random, seed1 = seeding.np_random(n)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+    def seed(self, n=None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def close(self):
         if self.viewer is not None:

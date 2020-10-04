@@ -44,6 +44,7 @@ class Switch(gym.Env):
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.seed()
 
     def get_action_meanings(self, agent_i=None):
         if agent_i is not None:
@@ -173,10 +174,9 @@ class Switch(gym.Env):
             self.viewer.imshow(img)
             return self.viewer.isopen
 
-    def seed(self, n):
-        self.np_random, seed1 = seeding.np_random(n)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+    def seed(self, n=None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def close(self):
         if self.viewer is not None:

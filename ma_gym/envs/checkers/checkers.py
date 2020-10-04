@@ -198,8 +198,8 @@ class Checkers(gym.Env):
             self._total_episode_reward[i] += rewards[i]
 
         # Following snippet of code was refereed from:
-        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py#L124
-        if all(self._agent_dones):
+        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py#L144
+        if self.steps_beyond_done is None and all(self._agent_dones):
             self.steps_beyond_done = 0
         elif self.steps_beyond_done is not None:
             if self.steps_beyond_done == 0:

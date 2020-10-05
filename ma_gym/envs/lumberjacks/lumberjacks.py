@@ -2,7 +2,6 @@ import copy
 import itertools
 import logging
 import random
-from dataclasses import dataclass
 from typing import List, Mapping, Tuple, Union
 
 import gym
@@ -20,16 +19,18 @@ logger = logging.getLogger(__name__)
 Coordinates = Tuple[int, int]
 
 
-@dataclass
 class Agent:
     """Dataclass keeping all data for one agent/lumberjack in environment.
+    In order to keep the support for Python3.6 we are not using `dataclasses` module.
 
     Attributes:
         id: unique id in one environment run
         pos: position of the agent in grid
     """
-    id: int
-    pos: Coordinates
+
+    def __init__(self, id: int, pos: Coordinates):
+        self.id = id
+        self.pos = pos
 
 
 class Lumberjacks(gym.Env):

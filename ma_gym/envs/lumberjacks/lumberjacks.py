@@ -45,7 +45,9 @@ class Lumberjacks(gym.Env):
     All values are scaled down into range ∈ [0, 1].
 
     Only the agents who are involved in cutting down the tree are rewarded with `tree_cutdown_reward`.
-    The environment is terminated as soon as all trees are cut down.
+    The environment is terminated as soon as all trees are cut down or when the number of steps reach the `max_steps`.
+
+    Upon rendering, we show the grid, where each cell shows the agents (blue) and tree (green) with their current strength.
 
     Args:
         grid_shape: size of the grid
@@ -83,6 +85,8 @@ class Lumberjacks(gym.Env):
         self._step_cost = step_cost
         self._tree_cutdown_reward = tree_cutdown_reward
         self._max_steps = max_steps
+        self.steps_beyond_done = 0
+        self.seed()
 
         self._agents = []  # List[Agent]
         # In order to speed up the environment we used the advantage of vector operations.
@@ -124,6 +128,7 @@ class Lumberjacks(gym.Env):
         self._step_count = 0
         self._total_episode_reward = np.zeros(self.n_agents)
         self._agent_dones = [False] * self.n_agents
+        self.steps_beyond_done = 0
 
         return self.get_agent_obs()
 
@@ -152,7 +157,7 @@ class Lumberjacks(gym.Env):
                 self._agents.append(Agent(agent_id, pos=pos))
                 agent_id += 1
             elif cell == PRE_IDS['tree']:
-                self._tree_map[pos] = np.random.randint(1, self.n_agents + 1)
+                self._tree_map[pos] = self.np_random.randint(1, self.n_agents + 1)
                 tree_id += 1
 
     def _to_extended_coordinates(self, relative_coordinates):
@@ -173,7 +178,7 @@ class Lumberjacks(gym.Env):
             [PRE_IDS['tree']] * self._n_trees +
             [PRE_IDS['empty']] * (np.prod(self._grid_shape) - self.n_agents - self._n_trees)
         )
-        np.random.shuffle(init_pos)
+        self.np_random.shuffle(init_pos)
         return np.reshape(init_pos, self._grid_shape)
 
     def render(self, mode='human'):
@@ -259,7 +264,19 @@ class Lumberjacks(gym.Env):
         yield from self._view_generator(mask)
 
     def step(self, agents_action: List[int]):
-        assert len(agents_action) == self.n_agents
+        # Assert would slow down the environment which is undesirable. We rather expect the check on the user side.
+        # assert len(agents_action) == self.n_agents
+
+        # Following snippet of code was refereed from:
+        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py#L124
+        if all(self._agent_dones):
+            if self.steps_beyond_done == 0:
+                logger.warning(
+                    "You are calling 'step()' even though this environment has already returned all(dones) = True for "
+                    "all agents. You should always call 'reset()' once you receive 'all(dones) = True' -- any further"
+                    " steps are undefined behavior.")
+            self.steps_beyond_done += 1
+            return self.get_agent_obs(), [0] * self.n_agents, self._agent_dones, {}
 
         self._step_count += 1
         rewards = np.full(self.n_agents, self._step_cost)
@@ -280,7 +297,7 @@ class Lumberjacks(gym.Env):
         if (self._step_count >= self._max_steps) or (np.count_nonzero(self._tree_map) == 0):
             self._agent_dones = [True] * self.n_agents
 
-        return self.get_agent_obs(), rewards.tolist(), self._agent_dones, {}
+        return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def _update_agent_pos(self, agent: Agent, move: int):
         """Moves `agent` according the `move` command."""
@@ -306,7 +323,7 @@ class Lumberjacks(gym.Env):
         elif move == ACTIONS_IDS['right']:
             next_pos = (curr_pos[0], curr_pos[1] + 1)
         else:
-            raise ValueError(f'Unknown action {move}.')
+            raise ValueError(f'Unknown action {move}. Valid action are {list(ACTIONS_IDS.values())}')
         # np.clip is significantly slower, see: https://github.com/numpy/numpy/issues/14281
         # return tuple(np.clip(next_pos,
         #                      (self._agent_view[0], self._agent_view[1]),
@@ -318,10 +335,9 @@ class Lumberjacks(gym.Env):
             min(max(next_pos[1], self._agent_view[1]), self._grid_shape[1] - 1),
         )
 
-    def seed(self, n: int):
-        self.np_random, seed1 = seeding.np_random(n)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+    def seed(self, n: Union[None, int] = None):
+        self.np_random, seed = seeding.np_random(n)
+        return [seed]
 
     def close(self):
         if self._viewer is not None:

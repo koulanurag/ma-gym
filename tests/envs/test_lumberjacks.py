@@ -27,14 +27,31 @@ def test_init(env):
 
 
 def test_reset(env):
+    agent_map = env._agent_map
+    tree_map = env._tree_map
+
     env.reset()
     assert env._step_count == 0
-    assert len(env._agents) == np.sum(env._agent_map)== 2
+    assert len(env._agents) == np.sum(env._agent_map) == 2
     assert np.sum(env._tree_map > 0) == 12
     for agent_id, agent in env._agent_generator():
         assert env._agent_dones[agent_id] == False, 'Game cannot finished after reset'
-        assert env._total_episode_reward[agent_id] == 0 , 'Total Episode reward doesn\'t match with one step reward'
+        assert env._total_episode_reward[agent_id] == 0, 'Total Episode reward doesn\'t match with one step reward'
     assert np.sum((env._tree_map < 0) & (env._tree_map > 2)) == 0
+    assert not (agent_map == env._agent_map).all(), 'Initial possition of agents must be different on each reset.'
+    assert not (tree_map == env._tree_map).all(), 'Initial possition of trees must be different on each reset.'
+
+
+def test_seed(env):
+    env.seed(5)
+    env.reset()
+    agent_map = env._agent_map
+    tree_map = env._tree_map
+
+    env.seed(5)
+    env.reset()
+    assert (agent_map == env._agent_map).all(), 'Initial possition of agents must be the same on reset with same seed.'
+    assert (tree_map == env._tree_map).all(), 'Initial possition of trees must be the same on reset with same seed.'
 
 
 @pytest.mark.parametrize('action_n', [[0, 0]])  # no-op action

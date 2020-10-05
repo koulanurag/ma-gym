@@ -1,7 +1,7 @@
 import gym
 import pytest
 import ma_gym
-from pytest_cases import pytest_parametrize_plus, fixture_ref
+from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -10,11 +10,13 @@ def env():
     yield env
     env.close()
 
+
 @pytest.fixture(scope='module')
 def env_full():
     env = gym.make('PredatorPrey7x7-v1')
     yield env
     env.close()
+
 
 def test_init(env):
     assert env.n_agents == 4
@@ -44,9 +46,8 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env),
-                         fixture_ref(env_full)])
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)

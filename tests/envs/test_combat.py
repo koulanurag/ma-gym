@@ -1,7 +1,7 @@
 import gym
 import pytest
 import ma_gym
-from pytest_cases import pytest_parametrize_plus, fixture_ref
+from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -38,7 +38,7 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@pytest_parametrize_plus('env',
+@parametrize_plus('env',
                          [fixture_ref(env)])
 def test_observation_space(env):
     obs = env.reset()

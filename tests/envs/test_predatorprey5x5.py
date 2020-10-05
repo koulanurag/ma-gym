@@ -10,6 +10,7 @@ def env():
     yield env
     env.close()
 
+
 @pytest.fixture(scope='module')
 def env_full():
     env = gym.make('PredatorPrey5x5-v1')
@@ -54,9 +55,8 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@parametrize_plus('env',
-                         [fixture_ref(env),
-                         fixture_ref(env_full)])
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)

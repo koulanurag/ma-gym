@@ -3,17 +3,20 @@ import pytest
 import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
+
 @pytest.fixture(scope='module')
 def env():
     env = gym.make('Switch2-v0')
     yield env
     env.close()
 
+
 @pytest.fixture(scope='module')
 def env_full():
     env = gym.make('Switch2-v1')
     yield env
     env.close()
+
 
 def test_init(env):
     assert env.n_agents == 2
@@ -76,8 +79,8 @@ def test_reset_after_episode_end(env):
 
 
 @parametrize_plus('env',
-                         [fixture_ref(env),
-                         fixture_ref(env_full)])
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)

@@ -36,6 +36,7 @@ def test_reset_after_episode_end(env):
     assert env._total_episode_reward == ep_reward
     test_reset(env)
 
+
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)

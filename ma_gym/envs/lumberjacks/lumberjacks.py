@@ -193,14 +193,20 @@ class Lumberjacks(gym.Env):
 
         # Iterate over all grid positions
         for pos, agent_strength, tree_strength in self._view_generator(mask):
-            if tree_strength != 0:
+            if tree_strength and agent_strength:
+                cell_size = (CELL_SIZE, CELL_SIZE / 2)
                 tree_pos = (pos[0], 2 * pos[1])
+                agent_pos = (pos[0], 2 * pos[1] + 1)
+            else:
+                cell_size = (CELL_SIZE, CELL_SIZE)
+                tree_pos = agent_pos = (pos[0], pos[1])
+
+            if tree_strength != 0:
                 fill_cell(img, pos=tree_pos, cell_size=cell_size, fill=TREE_COLOR, margin=0.1)
                 write_cell_text(img, text=str(tree_strength), pos=tree_pos,
                                 cell_size=cell_size, fill='white', margin=0.4)
 
             if agent_strength != 0:
-                agent_pos = (pos[0], 2 * pos[1] + 1)
                 draw_circle(img, pos=agent_pos, cell_size=cell_size, fill=AGENT_COLOR, radius=0.30)
                 write_cell_text(img, text=str(agent_strength), pos=agent_pos,
                                 cell_size=cell_size, fill='white', margin=0.4)

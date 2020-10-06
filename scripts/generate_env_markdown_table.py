@@ -1,3 +1,7 @@
+"""
+Usage: python scripts/generate_env_markdown_table.py
+"""
+
 import argparse
 from os import listdir
 from os.path import join

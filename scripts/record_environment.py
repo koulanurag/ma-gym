@@ -1,10 +1,13 @@
+"""
+Usage: python scripts/record_environment.py --env Checkers-v0
+"""
+
 import argparse
+import os
 
 import gym
-import imageio
-import numpy as np
-
 import ma_gym
+import imageio
 
 
 def parse_arguments():
@@ -12,7 +15,7 @@ def parse_arguments():
     parser.add_argument('--output_dir', type=str, default='static/gif/',
                         help='Output directory with GIF record.')
     parser.add_argument('--env', type=str,
-                        help='Name of recorded environment.')
+                        help='Name of recorded environment.', required=True)
     parser.add_argument('--frames', type=int, default=100,
                         help='Number of frames in GIF record.')
     parser.add_argument('--fps', type=int, default=21,
@@ -25,13 +28,13 @@ def main(args):
     pics = []
     done_n = [False] * env.n_agents
 
-    obs_n = env.reset()
+    env.reset()
     while not all(done_n):
         pics.append(env.render(mode='rgb_array'))
-        obs_n, _, done_n, _ = env.step(env.action_space.sample())
+        _, _, done_n, _ = env.step(env.action_space.sample())
 
     print("Environment finished.")
-    imageio.mimwrite(f'{args.env}.gif', pics[:args.frames], fps=args.fps)
+    imageio.mimwrite(os.path.join(args.output_dir, args.env + '.gif'), pics[:args.frames], fps=args.fps)
 
 
 if __name__ == "__main__":

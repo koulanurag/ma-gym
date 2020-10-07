@@ -1,14 +1,13 @@
 import copy
 import itertools
 import logging
-import random
-from typing import List, Mapping, Tuple, Union
+from typing import List, Tuple, Union
 
 import gym
 import numpy as np
+from PIL import ImageColor
 from gym import spaces
 from gym.utils import seeding
-from PIL import Image, ImageColor, ImageDraw
 
 from ..utils.action_space import MultiAgentActionSpace
 from ..utils.draw import draw_circle, draw_grid, fill_cell, write_cell_text
@@ -246,7 +245,7 @@ class Lumberjacks(gym.Env):
                     itertools.count(start=4, step=2),
                     self._agent_view_generator(agent.pos, self._agent_view)):
                 obs[i, j] = agent_strength / self.n_agents
-                obs[i, j+1] = tree_strength / self.n_agents
+                obs[i, j + 1] = tree_strength / self.n_agents
 
         # Convert it from numpy array
         obs = obs.tolist()
@@ -330,7 +329,7 @@ class Lumberjacks(gym.Env):
         elif move == ACTIONS_IDS['right']:
             next_pos = (curr_pos[0], curr_pos[1] + 1)
         else:
-            raise ValueError(f'Unknown action {move}. Valid action are {list(ACTIONS_IDS.values())}')
+            raise ValueError('Unknown action {}. Valid action are {}'.format(move, list(ACTIONS_IDS.values())))
         # np.clip is significantly slower, see: https://github.com/numpy/numpy/issues/14281
         # return tuple(np.clip(next_pos,
         #                      (self._agent_view[0], self._agent_view[1]),

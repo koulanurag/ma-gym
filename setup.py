@@ -10,18 +10,15 @@ extras = {
 # Meta dependency groups.
 extras['all'] = [item for group in extras.values() for item in group]
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
 setup(name='ma_gym',
       version='0.0.1',
       description='A collection of multi agent environments based on OpenAI gym.',
-      long_description=long_description,
       long_description_content_type='text/markdown',
+      long_description=open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8').read(),
       url='https://github.com/koulanurag/ma-gym',
       author='Anurag Koul',
       author_email='koulanurag@gmail.com',
-      license=open(path.join(path.abspath(path.dirname(__file__)), 'LICENSE')).read(),
+      license='MIT License',
       packages=['ma_gym'],
       py_modules=['ma_gym'],
       install_requires=[

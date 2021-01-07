@@ -1,7 +1,7 @@
 # ma-gym
 A collection of multi agent environments based on OpenAI gym.
 
-[![Build Status](https://travis-ci.com/koulanurag/ma-gym.svg?token=DM2fKnVJXEZDaszt9oHm&branch=master)](https://travis-ci.com/koulanurag/ma-gym)
+![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg)
 
 ## Installation
 Using PyPI:
@@ -63,7 +63,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 
 ## Testing:
 
-- Install: ```pip install pytest ```
+- Install: ```pip install -e .[test] ```
 - Run: ```pytest```
 
 

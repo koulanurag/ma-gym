@@ -4,13 +4,18 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ workflow ]
+  pull_request:
+    branches: [ workflow ]
 
 jobs:
   deploy:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v2

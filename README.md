@@ -1,7 +1,8 @@
 # ma-gym
 A collection of multi agent environments based on OpenAI gym.
 
-![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg)
+![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg) 
+![Upload Python Package](https://github.com/koulanurag/ma-gym/workflows/Upload%20Python%20Package/badge.svg)
 
 ## Installation
 Using PyPI:

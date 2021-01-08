@@ -80,6 +80,6 @@ Please use this bibtex if you would like to cite it:
     }
 ```
 ## Acknowledgement:
-This project was developed to complement my research internship @ [SAS](https://www.sas.com/en_us/home.html).
+- This project was initially developed to complement my research internship @ [SAS](https://www.sas.com/en_us/home.html) (Summer - 2019).
 
 

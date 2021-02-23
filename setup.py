@@ -1,5 +1,6 @@
 from os import path
 
+import setuptools
 from setuptools import setup
 
 extras = {
@@ -19,8 +20,7 @@ setup(name='ma_gym',
       author='Anurag Koul',
       author_email='koulanurag@gmail.com',
       license='MIT License',
-      packages=['ma_gym'],
-      py_modules=['ma_gym'],
+      packages=setuptools.find_packages(),
       install_requires=[
           'scipy>=1.3.0',
           'numpy>=1.16.4',

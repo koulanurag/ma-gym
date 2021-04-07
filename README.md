@@ -43,7 +43,7 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Usage) for comp
 - [x] Pong Duel  ```(two player pong game)```
 - [x] Switch
 - [x] Lumberjacks
-- [x] TrafficJunction ```(under construction)``` 
+- [x] TrafficJunction ```(almost done, getting final fixes)``` 
 
 ```
 Note : openai's environment can be accessed in multi agent form by prefix "ma_".Eg: ma_CartPole-v0

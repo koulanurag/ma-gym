@@ -68,8 +68,8 @@ class TrafficJunction(gym.Env):
         self.full_observable = full_observable
 
         # agent id (n_agents, onehot), pos (2)
-        self._obs_high = np.array([1.0] * self.n_agents + [1.0, 1.0])
-        self._obs_low = np.array([0.0] * self.n_agents + [0.0, 0.0])
+        self._obs_high = np.array([1.0] * self.n_agents + [1.0, 1.0], dtype=np.float32)
+        self._obs_low = np.array([0.0] * self.n_agents + [0.0, 0.0], dtype=np.float32)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)

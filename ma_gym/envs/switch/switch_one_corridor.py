@@ -38,8 +38,8 @@ class Switch(gym.Env):
 
         self.full_observable = full_observable
         # agent pos (2)
-        self._obs_high = np.array([1., 1.])
-        self._obs_low = np.array([0., 0.])
+        self._obs_high = np.array([1., 1.], dtype=np.float32)
+        self._obs_low = np.array([0., 0.], dtype=np.float32)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)

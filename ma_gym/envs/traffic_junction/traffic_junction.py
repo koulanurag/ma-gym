@@ -202,11 +202,11 @@ class TrafficJunction(gym.Env):
     def get_agent_obs(self):
         """
         Computes the observations for the agents. Each agent receives a list of encoded observations with his id,
-        a 3x3 observation mask and its coordinates. The size of the observation for an agent_i is 21, where
-        |id| = 10 (n_agents, where id_i is encoded with 1 and the remaining are 0), |mask| = 9 (3x3) and 
+        a 3x3 observation mask, the encoded route number and its coordinates. The size of the observation for an agent_i is 24, where
+        |id| = 10 (n_agents, where id_i is encoded with 1 and the remaining are 0), |mask| = 9 (3x3), |route| = 3 and
         |coords| = 2 (row, col)
 
-        :return: list with observations of all agents. the full list has shape (n_agents, 21)
+        :return: list with observations of all agents. the full list has shape (n_agents, 24)
         :rtype: list 
         """ 
         _obs = []
@@ -234,7 +234,15 @@ class TrafficJunction(gym.Env):
             # location
             _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
 
+            # route 
+            route_agent_i = np.zeros(3)
+            route_agent_i[self._agents_routes[agent_i]] = 1
+
+            _agent_i_obs += route_agent_i
+            
             _obs.append(_agent_i_obs)
+
+
 
         if self.full_observable:
             _obs = np.array(_obs).flatten().tolist()

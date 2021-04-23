@@ -236,9 +236,9 @@ class TrafficJunction(gym.Env):
 
             # route 
             route_agent_i = np.zeros(3)
-            route_agent_i[self._agents_routes[agent_i]] = 1
+            route_agent_i[self._agents_routes[agent_i] - 1] = 1
 
-            _agent_i_obs += route_agent_i
+            _agent_i_obs += route_agent_i.tolist()
             
             _obs.append(_agent_i_obs)
 

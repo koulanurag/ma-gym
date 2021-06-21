@@ -293,7 +293,7 @@ class TrafficJunction(gym.Env):
         assert len(agents_action) == self.n_agents
 
         self._step_count += 1
-        rewards = [self._step_cost for _ in range(self.n_agents)]
+        rewards = [0 for _ in range(self.n_agents)]  # initialize rewards array
 
         # checks if theres a collision; this is done in the __update_agent_pos method
         for agent_i, action in enumerate(agents_action):
@@ -332,7 +332,7 @@ class TrafficJunction(gym.Env):
         # gives additional step punishment to avoid jams
         for agent_i in range(self.n_agents):
             if self._on_the_road[agent_i]:
-                rewards[agent_i] += - 0.01 * self._step_count
+                rewards[agent_i] += self._step_cost * self._step_count
             self._total_episode_reward[agent_i] += rewards[agent_i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, None

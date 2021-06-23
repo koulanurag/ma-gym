@@ -16,8 +16,8 @@ from ..utils.draw import draw_grid, fill_cell, write_cell_text
 
 logger = logging.getLogger(__name__)
 
-# TODO do i need to set the agents position to (0, 0) after they are removed or can they virtually stay in the same place? for now they stay in the same place
-# if they stay there do i need to verify everytime if it is on the road when making moves?
+# do i need to set the agents position to (0, 0) after they are removed or can they virtually stay in the same place? for now they stay in the same place
+# if they stay there do i need to verify everytime if it is on the road when making moves? i guess
 class TrafficJunction(gym.Env):
     """
     This consists of a 4-way junction on a 14 × 14 grid. At each time step, new cars enter the grid with
@@ -51,7 +51,7 @@ class TrafficJunction(gym.Env):
         self._grid_shape = grid_shape
         self.n_agents = n_max
         self._max_steps = 100
-        self._step_count = None
+        self._step_count = 0
         self._collision_reward = rcoll
         self._total_episode_reward = None
         self._arrive_prob = arrive_prob
@@ -139,11 +139,6 @@ class TrafficJunction(gym.Env):
                     break
 
         self.__draw_base_img()
-
-
-    def __create_grid(self):
-        _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
-        return _grid
 
 
     def _is_cell_vacant(self, pos):

@@ -60,15 +60,14 @@ class TrafficJunction(gym.Env):
         self.curr_cars_count = 0
 
         self._agent_view_mask = (3, 3)
-        mask_size = np.prod(self._agent_view_mask)
 
         # entry gates where the cars spawn
         self._entry_gates = [(self._grid_shape[0] // 2, 0), (self._grid_shape[0] - 1, self._grid_shape[1] // 2),\
-                             (0, self._grid_shape[1] // 2 - 1), (self._grid_shape[0] // 2 - 1, self._grid_shape[1] - 1)]  # [(7, 0), (13, 7), (0, 6), (6, 13)]
+                             (self._grid_shape[0] // 2 - 1, self._grid_shape[1] - 1), (0, self._grid_shape[1] // 2 - 1)]  # [(7, 0), (13, 7), (6, 13), (0, 6)]
         
         # destination places for the cars to reach
         self._destination = [(self._grid_shape[0] // 2, self._grid_shape[1] - 1), (0, self._grid_shape[1] // 2),\
-                             (self._grid_shape[0] - 1, self._grid_shape[1] // 2 - 1), (self._grid_shape[0] // 2 - 1, 0)]  # [(7, 13), (0, 7), (13, 6), (6, 0)]
+                             (self._grid_shape[0] // 2 - 1, 0), (self._grid_shape[0] - 1, self._grid_shape[1] // 2 - 1)]  # [(7, 13), (0, 7), (6, 0), (13, 6)]
         
         # dict{direction_vectors: (turn_right, turn_left)}
         self._turning_places = {(0, 1): ((self._grid_shape[0] // 2, self._grid_shape[0] // 2 - 1), (self._grid_shape[0] // 2, self._grid_shape[0] // 2)),\
@@ -94,7 +93,6 @@ class TrafficJunction(gym.Env):
         self._agent_dones = [None for _ in range(self.n_agents)]
 
         self.viewer = None
-        self._n_agents_routes = None
         self.full_observable = full_observable
 
         # agent id (n_agents, onehot), pos (2)
@@ -104,8 +102,6 @@ class TrafficJunction(gym.Env):
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
-
-        self.agents_colors = [(random.randrange(256), random.randrange(256), random.randrange(256)) for _ in range(self.n_agents)]
 
 
     def action_space_sample(self):
@@ -153,7 +149,7 @@ class TrafficJunction(gym.Env):
         self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
 
 
-    def __check_colision(self, pos):
+    def __check_collision(self, pos):
         """
         Verifies if a transition to the position pos will result on a collision.
         :param pos: position to verify if there is collision
@@ -167,7 +163,7 @@ class TrafficJunction(gym.Env):
 
     def __is_gate_free(self):
         """
-        Verifies any spawning gate is free for a car to be placed
+        Verifies if any spawning gate is free for a car to be placed
 
         :return: boolean stating true or false
         :rtype: bool
@@ -394,7 +390,7 @@ class TrafficJunction(gym.Env):
             raise Exception('Action Not found!')
 
         # if there is a collision
-        if next_pos is not None and self.__check_colision(next_pos):
+        if next_pos is not None and self.__check_collision(next_pos):
             return self._collision_reward
 
         # if there is no collision and the next position is free updates agent position
@@ -431,7 +427,7 @@ class TrafficJunction(gym.Env):
 
         for agent_i in range(self.n_agents):
             if self._on_the_road[agent_i]:
-                fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=self.agents_colors[agent_i])
+                fill_cell(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENTS_COLORS[agent_i])
                 write_cell_text(img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
                                 fill='white', margin=0.3)
 
@@ -461,6 +457,20 @@ class TrafficJunction(gym.Env):
 CELL_SIZE = 30
 
 WALL_COLOR = 'black'
+
+# fixed colors for #agents = n_max <= 10
+AGENTS_COLORS = [
+    "red",
+    "blue",
+    "yellow",
+    "orange",
+    "black",
+    "green",
+    "purple",
+    "pink",
+    "brown",
+    "grey"
+]
 
 ACTION_MEANING = {
     0: "GAS",

@@ -222,7 +222,6 @@ class TrafficJunction(gym.Env):
                         # get relative position for other agents location
                         _other_agents_pos[row - (pos[0] - 1), col - (pos[1] - 1)] = 1
 
-            # set center value to 0 that belongs to agent_i TODO: see if this stays or not
             _other_agents_pos[1, 1] = 0.0
 
             _agent_i_obs += _other_agents_pos.flatten().tolist()  # adding other agents pos in observable area
@@ -286,9 +285,6 @@ class TrafficJunction(gym.Env):
             "Invalid action! It was expected to be list of {}" \
             " dimension but was found to be of {}".format(self.n_agents, len(agents_action))
 
-        # Todo: Add check to validate each sub-action. It should be a valid action.
-        # This must be done before position of any car is updated
-
         assert all([action_i in ACTION_MEANING.keys() for action_i in agents_action]), \
             "Invalid action found in the list of sampled actions {}" \
             ". Valid actions are {}".format(agents_action, ACTION_MEANING.keys())
@@ -303,6 +299,18 @@ class TrafficJunction(gym.Env):
                 if collision_flag:
                     rewards[agent_i] += self._collision_reward
 
+            # checks if destination was reached
+            if self.__reached_dest(agent_i):
+                self._on_the_road[agent_i] = False
+                self.curr_cars_count -= 1
+
+            if self._step_count >= self._max_steps:
+                self._agent_dones[agent_i] = True
+
+            # gives additional step punishment to avoid jams
+            if self._on_the_road[agent_i]:
+                rewards[agent_i] += self._step_cost * self._step_count
+            self._total_episode_reward[agent_i] += rewards[agent_i]
 
         # adds new car according to the probability _arrive_prob
         if random.uniform(0, 1) < self._arrive_prob:
@@ -319,21 +327,6 @@ class TrafficJunction(gym.Env):
                 self._agent_turned[agent_to_enter] = False
                 self._agents_routes[agent_to_enter] = random.randint(1, 3)
                 self.__update_agent_view(agent_to_enter)
-
-
-        # verifies if any destination place was reached
-        for agent_i in range(self.n_agents):
-            if self.__reached_dest(agent_i):
-                self._on_the_road[agent_i] = False
-                self.curr_cars_count -= 1
-
-            if self._step_count >= self._max_steps:
-                self._agent_dones[agent_i] = True
-
-            # gives additional step punishment to avoid jams
-            if self._on_the_road[agent_i]:
-                rewards[agent_i] += self._step_cost * self._step_count
-            self._total_episode_reward[agent_i] += rewards[agent_i]
 
         return self.get_agent_obs(), rewards, self._agent_dones, None
 
@@ -407,7 +400,6 @@ class TrafficJunction(gym.Env):
             self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
             self.__update_agent_view(agent_i)
 
-        # Todo: I guess, it should be step_cost instead of 0
         return False
 
     def reset(self):

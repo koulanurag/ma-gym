@@ -46,7 +46,7 @@ class TrafficJunction(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, grid_shape=(14, 14), step_cost=0, n_max=10, rcoll=-10, arrive_prob=0.5, full_observable=False):
+    def __init__(self, grid_shape=(14, 14), step_cost=0, n_max=4, rcoll=-10, arrive_prob=0.5, full_observable=False):
         assert 1 <= n_max <= 10, "n_max should be range in [1,10]"
         assert 0 <= arrive_prob <= 1, "arrive probability should be in range [0,1]"
         assert len(grid_shape) == 2, 'only 2-d grids are acceptable'
@@ -129,23 +129,21 @@ class TrafficJunction(gym.Env):
         """
         self._full_obs = self.__create_grid()
 
+        shuffled_gates = list(self._route_vectors.keys())
+        random.shuffle(shuffled_gates)
         for agent_i in range(self.n_agents):
-            while True:
-                pos = random.choice(list(self._route_vectors.keys()))
-
+            if self.curr_cars_count >= 4:
+                self.agent_pos[agent_i] = (0, 0)  # not yet on the road
+                self.__update_agent_view(agent_i)
+            else:
+                pos = shuffled_gates[agent_i]
                 # gets direction vector for agent_i that spawned in position pos
                 self._agents_direction[agent_i] = self._route_vectors[pos]
-                if self._is_cell_vacant(pos):
-                    self.agent_pos[agent_i] = pos
-                    self.curr_cars_count += 1
-                    self._on_the_road[agent_i] = True
-                    self._agents_routes[agent_i] = random.randint(1, 3)
-                    self.__update_agent_view(agent_i)
-                    break
-                elif self.curr_cars_count >= 4:
-                    self.agent_pos[agent_i] = (0, 0)  # not yet on the road
-                    self.__update_agent_view(agent_i)
-                    break
+                self.agent_pos[agent_i] = pos
+                self.curr_cars_count += 1
+                self._on_the_road[agent_i] = True
+                self._agents_routes[agent_i] = random.randint(1, 3)
+                self.__update_agent_view(agent_i)
 
         self.__draw_base_img()
 
@@ -173,13 +171,14 @@ class TrafficJunction(gym.Env):
         """
         Verifies if any spawning gate is free for a car to be placed
 
-        :return: boolean stating true or false
-        :rtype: bool
+        :return: list of currently free gates
+        :rtype: list
         """
+        free_gates = []
         for pos in self._entry_gates:
             if pos not in self.agent_pos.values():
-                return True
-        return False
+                free_gates.append(pos)
+        return free_gates
 
     def __reached_dest(self, agent_i):
         """
@@ -290,31 +289,37 @@ class TrafficJunction(gym.Env):
         # Todo: Add check to validate each sub-action. It should be a valid action.
         # This must be done before position of any car is updated
 
+        assert all([action_i in ACTION_MEANING.keys() for action_i in agents_action]), \
+            "Invalid action found in the list of sampled actions {}" \
+            ". Valid actions are {}".format(agents_action, ACTION_MEANING.keys())
+
         self._step_count += 1
         rewards = [0 for _ in range(self.n_agents)]  # initialize rewards array
 
         # checks if there is a collision; this is done in the __update_agent_pos method
         for agent_i, action in enumerate(agents_action):
             if not (self._agent_dones[agent_i]) and self._on_the_road[agent_i]:
-                col_reward = self.__update_agent_pos(agent_i, action)
-                rewards[agent_i] += col_reward
+                collision_flag = self.__update_agent_pos(agent_i, action)
+                if collision_flag:
+                    rewards[agent_i] += self._collision_reward
 
-        # TODO remove self.curr_cars_count < self._n_max here, might not be needed if we play with the on the road
+
         # adds new car according to the probability _arrive_prob
-        if random.uniform(0, 1) < self._arrive_prob and self.curr_cars_count < self._n_max:
-            for agent_i in range(self.n_agents):
-                if self.__is_gate_free() and not self._on_the_road[agent_i]:
-                    while True:
-                        pos = random.choice(list(self._route_vectors.keys()))
-                        self._agents_direction[agent_i] = self._route_vectors[pos]
-                        if self._is_cell_vacant(pos):
-                            self.agent_pos[agent_i] = pos
-                            self.curr_cars_count += 1
-                            self._on_the_road[agent_i] = True
-                            self._agent_turned[agent_i] = False
-                            self._agents_routes[agent_i] = random.randint(1, 3)
-                            self.__update_agent_view(agent_i)
-                            break
+        if random.uniform(0, 1) < self._arrive_prob:
+            free_gates = self.__is_gate_free()
+            # if there are agents outside the road and if any gate is free
+            if not all(self._on_the_road) and free_gates:
+                # then gets first agent on the list which is not on the road
+                agent_to_enter = self._on_the_road.index(False)
+                pos = random.choice(free_gates)
+                self._agents_direction[agent_to_enter] = self._route_vectors[pos]
+                self.agent_pos[agent_to_enter] = pos
+                self.curr_cars_count += 1
+                self._on_the_road[agent_to_enter] = True
+                self._agent_turned[agent_to_enter] = False
+                self._agents_routes[agent_to_enter] = random.randint(1, 3)
+                self.__update_agent_view(agent_to_enter)
+
 
         # verifies if any destination place was reached
         for agent_i in range(self.n_agents):
@@ -322,12 +327,10 @@ class TrafficJunction(gym.Env):
                 self._on_the_road[agent_i] = False
                 self.curr_cars_count -= 1
 
-        if self._step_count >= self._max_steps:
-            for i in range(self.n_agents):
-                self._agent_dones[i] = True
+            if self._step_count >= self._max_steps:
+                self._agent_dones[agent_i] = True
 
-        # gives additional step punishment to avoid jams
-        for agent_i in range(self.n_agents):
+            # gives additional step punishment to avoid jams
             if self._on_the_road[agent_i]:
                 rewards[agent_i] += self._step_cost * self._step_count
             self._total_episode_reward[agent_i] += rewards[agent_i]
@@ -368,8 +371,8 @@ class TrafficJunction(gym.Env):
         :param move: move picked by the agent_i
         :type move: int
 
-        :return: reward associated to the existence or absence of a collision
-        :rtype: int
+        :return: bool flag associated to the existence or absence of a collision
+        :rtype: bool
         """
 
         curr_pos = copy.copy(self.agent_pos[agent_i])
@@ -396,7 +399,7 @@ class TrafficJunction(gym.Env):
 
         # if there is a collision
         if next_pos is not None and self.__check_collision(next_pos):
-            return self._collision_reward
+            return True
 
         # if there is no collision and the next position is free updates agent position
         if next_pos is not None and self._is_cell_vacant(next_pos):
@@ -405,7 +408,7 @@ class TrafficJunction(gym.Env):
             self.__update_agent_view(agent_i)
 
         # Todo: I guess, it should be step_cost instead of 0
-        return 0
+        return False
 
     def reset(self):
         """

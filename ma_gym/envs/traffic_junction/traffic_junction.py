@@ -61,6 +61,7 @@ class TrafficJunction(gym.Env):
         self._n_max = n_max
         self._step_cost = step_cost
         self.curr_cars_count = 0
+        self._n_routes = 3
 
         self._agent_view_mask = (3, 3)
 
@@ -97,7 +98,7 @@ class TrafficJunction(gym.Env):
 
         self._agent_turned = [False for _ in range(self.n_agents)]  # flag if car changed direction
         self._agents_routes = [-1 for _ in range(self.n_agents)]  # route each car is following atm
-        self._agents_direction = [0 for _ in range(self.n_agents)]  # cars direction vectors atm
+        self._agents_direction = [(0, 0) for _ in range(self.n_agents)]  # cars are not on the road initially
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(2) for _ in range(self.n_agents)])
         self.agent_pos = {_: None for _ in range(self.n_agents)}
@@ -110,9 +111,10 @@ class TrafficJunction(gym.Env):
         self.viewer = None
         self.full_observable = full_observable
 
-        # agent id (n_agents, onehot), pos (2)
-        self._obs_high = np.array([1.0] * self.n_agents + [1.0, 1.0])
-        self._obs_low = np.array([0.0] * self.n_agents + [0.0, 0.0])
+        # agent id (n_agents, onehot), obs_mask (9), pos (2), route (3)
+        mask_size = np.prod(self._agent_view_mask)
+        self._obs_high = np.array([1.0] * self.n_agents + [1.0] * mask_size + [1.0, 1.0] + [1.0] * self._n_routes)
+        self._obs_low = np.array([0.0] * self.n_agents + [0.0] * mask_size + [0.0, 0.0] + [0.0] * self._n_routes)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
@@ -132,9 +134,8 @@ class TrafficJunction(gym.Env):
         shuffled_gates = list(self._route_vectors.keys())
         random.shuffle(shuffled_gates)
         for agent_i in range(self.n_agents):
-            if self.curr_cars_count >= 4:
+            if self.curr_cars_count >= len(self._entry_gates):
                 self.agent_pos[agent_i] = (0, 0)  # not yet on the road
-                self.__update_agent_view(agent_i)
             else:
                 pos = shuffled_gates[agent_i]
                 # gets direction vector for agent_i that spawned in position pos
@@ -142,8 +143,8 @@ class TrafficJunction(gym.Env):
                 self.agent_pos[agent_i] = pos
                 self.curr_cars_count += 1
                 self._on_the_road[agent_i] = True
-                self._agents_routes[agent_i] = random.randint(1, 3)
-                self.__update_agent_view(agent_i)
+                self._agents_routes[agent_i] = random.randint(1, self._n_routes)  # (1,3)
+            self.__update_agent_view(agent_i)
 
         self.__draw_base_img()
 
@@ -199,7 +200,7 @@ class TrafficJunction(gym.Env):
         """
         Computes the observations for the agents. Each agent receives a list of encoded observations with his id,
         a 3x3 observation mask, the encoded route number and its coordinates. The size of the observation for an
-        agent_i is 24, where |id| = 10 (n_agents, where id_i is encoded with 1 and the remaining are 0),
+        agent_i is <= 24, where |id| <= 10 (n_agents, where id_i is encoded with 1 and the remaining are 0),
         |mask| = 9 (3x3), |route| = 3 and |coords| = 2 (row, col)
 
         :return: list with observations of all agents. the full list has shape (n_agents, 24)
@@ -230,7 +231,7 @@ class TrafficJunction(gym.Env):
             _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
 
             # route 
-            route_agent_i = np.zeros(3)
+            route_agent_i = np.zeros(self._n_routes)
             route_agent_i[self._agents_routes[agent_i] - 1] = 1
 
             _agent_i_obs += route_agent_i.tolist()
@@ -255,7 +256,7 @@ class TrafficJunction(gym.Env):
 
     def __create_grid(self):
         # create a grid with every cell as wall
-        _grid = [[PRE_IDS['wall'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
+        _grid = [[PRE_IDS['wall'] for _ in range(self._grid_shape[1])] for _ in range(self._grid_shape[0])]
 
         # draw track by making cells empty :
         # horizontal tracks
@@ -325,14 +326,14 @@ class TrafficJunction(gym.Env):
                 self.curr_cars_count += 1
                 self._on_the_road[agent_to_enter] = True
                 self._agent_turned[agent_to_enter] = False
-                self._agents_routes[agent_to_enter] = random.randint(1, 3)
+                self._agents_routes[agent_to_enter] = random.randint(1, self._n_routes)  # (1, 3)
                 self.__update_agent_view(agent_to_enter)
 
         return self.get_agent_obs(), rewards, self._agent_dones, None
 
     def __get_next_direction(self, route, agent_i):
         """
-        Computes the new direction vector after the cars turn on the junction for routes 2 (turn right) and 3 (turn left)
+        Computes the new direction vector after the cars turn on the junction for route 2 (turn right) and 3 (turn left)
         :param route: route that was assigned to the car (1 - fwd, 2 - turn right, 3 - turn left)
         :type route: int
 

@@ -143,11 +143,7 @@ class TrafficJunction(gym.Env):
                 self.agent_pos[agent_i] = pos
                 self.curr_cars_count += 1
                 self._on_the_road[agent_i] = True
-<<<<<<< HEAD
                 self._agents_routes[agent_i] = random.randint(1, self._n_routes)  # (1,3)
-=======
-                self._agents_routes[agent_i] = random.randint(1, len(self._entry_gates) - 1)  # (1,3)
->>>>>>> b1346491e918661d33f818d4a2895fc2c7eab972
             self.__update_agent_view(agent_i)
 
         self.__draw_base_img()

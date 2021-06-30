@@ -72,8 +72,8 @@ class Combat(gym.Env):
         self.full_observable = full_observable
 
         # 5 * 5 * (type, id, health, cool, x, y)
-        self._obs_low = np.repeat([-1., 0., 0., -1., 0., 0.], 5 * 5)
-        self._obs_high = np.repeat([1., n_opponents, init_health, 1., 1., 1.], 5 * 5)
+        self._obs_low = np.repeat(np.array([-1., 0., 0., -1., 0., 0.], dtype=np.float32), 5 * 5)
+        self._obs_high = np.repeat(np.array([1., n_opponents, init_health, 1., 1., 1.], dtype=np.float32), 5 * 5)
         self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
         self.seed()
 

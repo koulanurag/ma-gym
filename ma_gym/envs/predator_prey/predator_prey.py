@@ -63,8 +63,8 @@ class PredatorPrey(gym.Env):
 
         # agent pos (2), prey (25), step (1)
         mask_size = np.prod(self._agent_view_mask)
-        self._obs_high = np.array([1., 1.] + [1.] * mask_size + [1.0])
-        self._obs_low = np.array([0., 0.] + [0.] * mask_size + [0.0])
+        self._obs_high = np.array([1., 1.] + [1.] * mask_size + [1.0], dtype=np.float32)
+        self._obs_low = np.array([0., 0.] + [0.] * mask_size + [0.0], dtype=np.float32)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)

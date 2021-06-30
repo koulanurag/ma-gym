@@ -16,13 +16,24 @@ git clone https://github.com/koulanurag/ma-gym.git
 cd ma-gym
 pip install -e .
 ```
+## Reference:
+Please use this bibtex if you would like to cite it:
+```
+@misc{magym,
+      author = {Koul, Anurag},
+      title = {ma-gym: Collection of multi-agent environments based on OpenAI gym.},
+      year = {2019},
+      publisher = {GitHub},
+      journal = {GitHub repository},
+      howpublished = {\url{https://github.com/koulanurag/ma-gym}},
+    }
+```
 
 ## Usage:
 ```python
 import gym
-import ma_gym
 
-env = gym.make('Switch2-v0')
+env = gym.make('ma_gym:Switch2-v0')
 done_n = [False for _ in range(env.n_agents)]
 ep_reward = 0
 
@@ -65,22 +76,10 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 
 ## Testing:
 
-- Install: ```pip install -e .[test] ```
+- Install: ```pip install -e ".[test]" ```
 - Run: ```pytest```
 
 
-## Reference:
-Please use this bibtex if you would like to cite it:
-```
-@misc{magym,
-      author = {Koul, Anurag},
-      title = {ma-gym: Collection of multi-agent environments based on OpenAI gym.},
-      year = {2019},
-      publisher = {GitHub},
-      journal = {GitHub repository},
-      howpublished = {\url{https://github.com/koulanurag/ma-gym}},
-    }
-```
 ## Acknowledgement:
 - This project was initially developed to complement my research internship @ [SAS](https://www.sas.com/en_us/home.html) (Summer - 2019).
 

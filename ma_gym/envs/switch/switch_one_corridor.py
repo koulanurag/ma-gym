@@ -7,8 +7,8 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
-from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_cell_outline, draw_circle, write_cell_text
+from ..utils.observation_space import MultiAgentObservationSpace
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 class Switch(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=0, n_agents=4, max_steps=50):
+    def __init__(self, full_observable: bool = False, step_cost: float = 0, n_agents: int = 4, max_steps: int = 50):
+        assert 2 <= n_agents <= 4, 'Number of Agents has to be in range [2,4]'
         self._grid_shape = (3, 7)
         self.n_agents = n_agents
         self._max_steps = max_steps
@@ -26,10 +27,15 @@ class Switch(gym.Env):
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 
-        self.init_agent_pos = {0: [0, 1], 1: [0, self._grid_shape[1] - 2],
-                               2: [2, 1], 3: [2, self._grid_shape[1] - 2]}
-        self.final_agent_pos = {0: [0, self._grid_shape[1] - 1], 1: [0, 0],
-                                2: [2, self._grid_shape[1] - 1], 3: [2, 0]}  # they have to go in opposite direction
+        init_agent_pos = {0: [0, 1], 1: [0, self._grid_shape[1] - 2],
+                          2: [2, 1], 3: [2, self._grid_shape[1] - 2]}
+        final_agent_pos = {0: [0, self._grid_shape[1] - 1], 1: [0, 0],
+                           2: [2, self._grid_shape[1] - 1], 3: [2, 0]}  # they have to go in opposite direction
+
+        self.init_agent_pos, self.final_agent_pos = {}, {}
+        for agent_i in range(n_agents):
+            self.init_agent_pos[agent_i] = init_agent_pos[agent_i]
+            self.final_agent_pos[agent_i] = final_agent_pos[agent_i]
 
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
@@ -38,12 +44,13 @@ class Switch(gym.Env):
 
         self.full_observable = full_observable
         # agent pos (2)
-        self._obs_high = np.array([1., 1.])
-        self._obs_low = np.array([0., 0.])
+        self._obs_high = np.array([1., 1.], dtype=np.float32)
+        self._obs_low = np.array([0., 0.], dtype=np.float32)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high)
+                                                             for _ in range(self.n_agents)])
         self.seed()
 
     def get_action_meanings(self, agent_i=None):

@@ -35,8 +35,8 @@ class Checkers(gym.Env):
         self.full_observable = full_observable
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-        self._obs_high = np.array([1.0, 1.0] + [max(OBSERVATION_MEANING.keys())] * 9)
-        self._obs_low = np.array([0.0, 0.0] + [min(OBSERVATION_MEANING.keys())] * 9)
+        self._obs_high = np.array([1.0, 1.0] + [max(OBSERVATION_MEANING.keys())] * 9, dtype=np.float32)
+        self._obs_low = np.array([0.0, 0.0] + [min(OBSERVATION_MEANING.keys())] * 9, dtype=np.float32)
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)

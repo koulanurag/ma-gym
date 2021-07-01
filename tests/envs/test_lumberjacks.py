@@ -3,12 +3,10 @@ import numpy as np
 import pytest
 from pytest_cases import fixture_ref, parametrize_plus
 
-import ma_gym
-
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Lumberjacks-v0')
+    env = gym.make('ma_gym:Lumberjacks-v0')
     yield env
     env.close()
 

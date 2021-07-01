@@ -27,6 +27,7 @@ setup(name='ma_gym',
           'pyglet>=1.4.0,<=1.5.0',
           'cloudpickle>=1.2.0,<1.7.0',
           'gym>=0.17.0',
+          'pillow>=7.2.0'
       ],
       extras_require=extras,
       tests_require=extras['test'],

@@ -251,7 +251,10 @@ class TrafficJunction(gym.Env):
         for i, row in enumerate(self._full_obs):
             for j, col in enumerate(row):
                 if col == PRE_IDS['empty']:
-                    fill_cell(img, (i, j), cell_size=CELL_SIZE, fill='white', margin=0.05)
+                    fill_cell(img, (i, j), cell_size=CELL_SIZE, fill=(143, 141, 136), margin=0.05)
+                elif col == PRE_IDS['wall']:
+                    fill_cell(img, (i, j), cell_size=CELL_SIZE, fill=(242, 227, 167), margin=0.02)
+
         return img
 
     def __create_grid(self):

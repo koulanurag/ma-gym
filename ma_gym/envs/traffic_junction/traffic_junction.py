@@ -18,31 +18,37 @@ logger = logging.getLogger(__name__)
 
 class TrafficJunction(gym.Env):
     """
-    This consists of a 4-way junction on a 14 × 14 grid. At each time step, new cars enter the grid with
+    This consists of a 4-way junction on a 14 × 14 grid. At each time step, "new" cars enter the grid with
     probability `p_arrive` from each of the four directions. However, the total number of cars at any given
     time is limited to `Nmax = 10`.
 
-    Each car occupies a single cell at any given time
-    and is randomly assigned to one of three possible routes (keeping to the right-hand side of the road).
-    At every time step, a car has two possible actions: gas which advances it by one cell on its route or
-    brake to stay at its current location. A car will be removed once it reaches its destination at the edge
-    of the grid.
+    Each car occupies a single cell at any given time and is randomly assigned to one of three possible routes
+    (keeping to the right-hand side of the road). At every time step, a car has two possible actions: gas which advances
+    it by one cell on its route or brake to stay at its current location. A car will be removed once it reaches its
+    destination at the edge of the grid.
 
     Two cars collide if their locations overlap. A collision incurs a reward `rcoll = −10`, but does not affect
-    the simulation in any other way. To discourage a traffic jam, each car gets reward of `τrtime = −0.01τ`
+    the simulation in any other way. To discourage a traffic jam, each car gets reward of `τ * r_time = −0.01τ`
     at every time step, where `τ` is the number time steps passed since the car arrived. Therefore, the total
     reward at time t is
-    # Todo: complete the reward information
+
+    r(t) = C^t * r_coll + \sum_{i=1}_{N^t} {\tau_i * r_time}
+
+    where C^t is the number of collisions occurring at time t and N^t is number of cars present. The simulation is
+    terminated after 40 steps and is classified as a failure if one or more collisions have occurred.
 
     Each car is represented by one-hot binary vector set {n, l, r}, that encodes its unique ID, current location
     and assigned route number respectively. Each agent controlling a car can only observe other cars in its vision
-    range (a surrounding 3 × 3 neighborhood), but it can communicate to all other cars.
+    range (a surrounding 3 × 3 neighborhood).
 
     The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
-    32 × |n| × |l| × |r|.
+    (3^2) × |n| × |l| × |r|.
 
-    Reference : Learning Multiagent Communication with Backpropagation
+    Reference : Learning Multi-agent Communication with Backpropagation
     Url : https://papers.nips.cc/paper/6398-learning-multiagent-communication-with-backpropagation.pdf
+
+
+    For details on various versions, please refer to "wiki"
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 

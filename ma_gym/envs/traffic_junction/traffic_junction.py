@@ -42,7 +42,7 @@ class TrafficJunction(gym.Env):
     range (a surrounding 3 × 3 neighborhood).
 
     The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
-    (3^2) × |n| × |l| × |r|.
+    (3^2) × (|n| + |l| + |r|).
 
     Reference : Learning Multi-agent Communication with Backpropagation
     Url : https://papers.nips.cc/paper/6398-learning-multiagent-communication-with-backpropagation.pdf
@@ -121,8 +121,8 @@ class TrafficJunction(gym.Env):
 
         # agent id (n_agents, onehot), obs_mask (9), pos (2), route (3)
         mask_size = np.prod(self._agent_view_mask)
-        self._obs_high = np.ones((mask_size * self.n_agents * self._n_routes * 2))  # 2 is for location
-        self._obs_low = np.zeros((mask_size * self.n_agents * self._n_routes * 2))  # 2 is for location
+        self._obs_high = np.ones((mask_size * (self.n_agents + self._n_routes + 2)))  # 2 is for location
+        self._obs_low = np.zeros((mask_size * (self.n_agents + self._n_routes + 2)))  # 2 is for location
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
@@ -211,7 +211,7 @@ class TrafficJunction(gym.Env):
         that encodes its unique ID, current location and assigned route number respectively.
 
         The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
-        (3^2) × |n| × |l| × |r|.
+        (3^2) × (|n| + |l| + |r|).
 
         :return: list with observations of all agents. the full list has shape (n_agents, (3^2) × |n| × |l| × |r|)
         :rtype: list

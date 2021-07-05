@@ -317,11 +317,16 @@ class TrafficJunction(gym.Env):
                 self._on_the_road[agent_i] = False
                 self.curr_cars_count -= 1
 
+            # Todo: Once a car reaches it's destination , it will never enter again in any of the tracks.
+            # Also, if all cars have reached their destination, then we terminate the episode.
             if self._step_count >= self._max_steps:
                 self._agent_dones[agent_i] = True
 
             # gives additional step punishment to avoid jams
             if self._on_the_road[agent_i]:
+                # Todo: To discourage a traffic jam, each car gets reward of `τ * r_time = −0.01τ`
+                # at every time step, where `τ` is the number time steps passed since the car arrived.
+                # We need to keep track of step_count of each car and that has to be multiplied.
                 rewards[agent_i] += self._step_cost * self._step_count
             self._total_episode_reward[agent_i] += rewards[agent_i]
 

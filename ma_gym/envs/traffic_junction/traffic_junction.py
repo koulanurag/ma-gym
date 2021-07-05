@@ -239,16 +239,12 @@ class TrafficJunction(gym.Env):
         agent_obs = []
         for agent_i in range(self.n_agents):
             pos = self.agent_pos[agent_i]
-            # gets other agents position relative to agent_i position, 3x3 view mask
-            _other_agents_pos = np.zeros(self._agent_view_mask)  # other agents location in neighbour
-
-            mask_view = np.zeros(np.prod(self._agent_view_mask) - 1)
+            mask_view = np.zeros((*self._agent_view_mask, len(agent_no_mask_obs[0])))
             for row in range(max(0, pos[0] - 1), min(pos[0] + 1 + 1, self._grid_shape[0])):
                 for col in range(max(0, pos[1] - 1), min(pos[1] + 1 + 1, self._grid_shape[1])):
                     if PRE_IDS['agent'] in self._full_obs[row][col]:
-                        # get relative position for other agents location
                         _id = int(self._full_obs[row][col].split(PRE_IDS['agent'])[1]) - 1
-                        mask_view[_id] = agent_no_mask_obs[_id]
+                        mask_view[row - (pos[0] - 1), col - (pos[1] - 1), :] = agent_no_mask_obs[_id]
             agent_obs.append(mask_view.flatten())
 
         if self.full_observable:

@@ -121,8 +121,8 @@ class TrafficJunction(gym.Env):
 
         # agent id (n_agents, onehot), obs_mask (9), pos (2), route (3)
         mask_size = np.prod(self._agent_view_mask)
-        self._obs_high = np.array([1.0] * self.n_agents + [1.0] * mask_size + [1.0, 1.0] + [1.0] * self._n_routes)
-        self._obs_low = np.array([0.0] * self.n_agents + [0.0] * mask_size + [0.0, 0.0] + [0.0] * self._n_routes)
+        self._obs_high = np.ones((mask_size * self.n_agents * self._n_routes * 2))  # 2 is for location
+        self._obs_low = np.zeros((mask_size * self.n_agents * self._n_routes * 2))  # 2 is for location
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
@@ -206,34 +206,24 @@ class TrafficJunction(gym.Env):
 
     def get_agent_obs(self):
         """
-        Computes the observations for the agents. Each agent receives a list of encoded observations with his id,
-        a 3x3 observation mask, the encoded route number and its coordinates. The size of the observation for an
-        agent_i is <= 24, where |id| <= 10 (n_agents, where id_i is encoded with 1 and the remaining are 0),
-        |mask| = 9 (3x3), |route| = 3 and |coords| = 2 (row, col)
+        Computes the observations for the agents. Each agent receives information about cars in it's vision
+        range (a surrounding 3 × 3 neighborhood),where each car is represented by one-hot binary vector set {n, l, r},
+        that encodes its unique ID, current location and assigned route number respectively.
 
-        :return: list with observations of all agents. the full list has shape (n_agents, 24)
-        :rtype: list 
+        The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
+        (3^2) × |n| × |l| × |r|.
+
+        :return: list with observations of all agents. the full list has shape (n_agents, (3^2) × |n| × |l| × |r|)
+        :rtype: list
         """
-        _obs = []
+        agent_no_mask_obs = []
+
         for agent_i in range(self.n_agents):
             pos = self.agent_pos[agent_i]
 
             # agent id
             _agent_i_obs = [0 for _ in range(self.n_agents)]
             _agent_i_obs[agent_i] = 1
-
-            # gets other agents position relative to agent_i position, 3x3 view mask
-            _other_agents_pos = np.zeros(self._agent_view_mask)  # other agents location in neighbour
-
-            for row in range(max(0, pos[0] - 1), min(pos[0] + 1 + 1, self._grid_shape[0])):
-                for col in range(max(0, pos[1] - 1), min(pos[1] + 1 + 1, self._grid_shape[1])):
-                    if PRE_IDS['agent'] in self._full_obs[row][col]:
-                        # get relative position for other agents location
-                        _other_agents_pos[row - (pos[0] - 1), col - (pos[1] - 1)] = 1
-
-            _other_agents_pos[1, 1] = 0.0
-
-            _agent_i_obs += _other_agents_pos.flatten().tolist()  # adding other agents pos in observable area
 
             # location
             _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
@@ -244,12 +234,27 @@ class TrafficJunction(gym.Env):
 
             _agent_i_obs += route_agent_i.tolist()
 
-            _obs.append(_agent_i_obs)
+            agent_no_mask_obs.append(_agent_i_obs)
+
+        agent_obs = []
+        for agent_i in range(self.n_agents):
+            pos = self.agent_pos[agent_i]
+            # gets other agents position relative to agent_i position, 3x3 view mask
+            _other_agents_pos = np.zeros(self._agent_view_mask)  # other agents location in neighbour
+
+            mask_view = np.zeros(np.prod(self._agent_view_mask) - 1)
+            for row in range(max(0, pos[0] - 1), min(pos[0] + 1 + 1, self._grid_shape[0])):
+                for col in range(max(0, pos[1] - 1), min(pos[1] + 1 + 1, self._grid_shape[1])):
+                    if PRE_IDS['agent'] in self._full_obs[row][col]:
+                        # get relative position for other agents location
+                        _id = int(self._full_obs[row][col].split(PRE_IDS['agent'])[1]) - 1
+                        mask_view[_id] = agent_no_mask_obs[_id]
+            agent_obs.append(mask_view.flatten())
 
         if self.full_observable:
-            _obs = np.array(_obs).flatten().tolist()
-            _obs = [_obs for _ in range(self.n_agents)]
-        return _obs
+            _obs = np.array(agent_obs).flatten().tolist()
+            agent_obs = [_obs for _ in range(self.n_agents)]
+        return agent_obs
 
     def __draw_base_img(self):
         # create grid and make everything black

@@ -19,7 +19,7 @@ def test_init(env):
 def test_reset(env):
     env.reset()
     assert env._step_count == 0, 'Step count should be 0 after reset, got {}'.format(env._step_count)
-    assert env._agent_step_count == [0 for _ in range(env.n_agents)], 'Agent step count should be 0 for all agents'\
+    assert env._agent_step_count == [0 for _ in range(env.n_agents)], 'Agent step count should be 0 for all agents' \
                                                                       ' after reset'
     assert env._total_episode_reward == [0 for _ in range(env.n_agents)], 'Total reward should be 0 after reset'
     assert env._agent_dones == [False for _ in range(env.n_agents)], 'Agents cannot be done when the environment' \
@@ -59,3 +59,14 @@ def test_observation_space(env):
     assert env.observation_space.contains(obs), 'Observation must be part of the observation space'
     assert env.observation_space.contains(env.observation_space.sample()), 'Observation must be part of the' \
                                                                            ' observation space'
+
+
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env)])
+def test_step_cost(env):
+    env.reset()
+    for step_i in range(3):
+        obs, reward_n, done, _ = env.step(env.action_space.sample())
+        target_reward = [env._step_cost * (step_i + 1) for _ in range(env.n_agents)]
+        assert (reward_n == target_reward), \
+            'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)

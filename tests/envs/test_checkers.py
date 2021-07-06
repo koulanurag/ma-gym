@@ -98,3 +98,40 @@ def test_observation_space(env):
         assert env.observation_space.contains(obs)
     assert env.observation_space.contains(obs)
     assert env.observation_space.contains(env.observation_space.sample())
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_rollout(env):
+    actions = [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
+               [0, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4]]
+    target_rewards = [[-5.01, -1.01], [4.99, 0.99], [-5.01, -1.01], [4.99, 0.99],
+                      [-5.01, -1.01], [4.99, 0.99], [-0.01, -0.01], [-0.01, -0.01],
+                      [-5.01, -0.01], [4.99, -0.01], [-5.01, -0.01], [4.99, -0.01],
+                      [-5.01, -0.01], [4.99, -0.01]]
+    for episode_i in range(2):
+
+        env.reset()
+        done = [False for _ in range(env.n_agents)]
+        env.render()
+        for step_i in range(len(actions)):
+            obs, reward_n, done, _ = env.step(actions[step_i])
+            assert reward_n == target_rewards[step_i]
+            step_i += 1
+            env.render()
+
+        assert done == [True for _m in range(env.n_agents)]
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_max_steps(env):
+    for episode_i in range(2):
+        env.reset()
+        done = [False for _ in range(env.n_agents)]
+        step_i = 0
+        while not all(done):
+            obs, reward_n, done, _ = env.step([4, 4])
+            step_i += 1
+        assert step_i == env._max_steps
+        assert done == [True for _m in range(env.n_agents)]

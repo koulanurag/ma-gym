@@ -1,4 +1,5 @@
 import gym
+import numpy as np
 import pytest
 from pytest_cases import pytest_parametrize_plus, fixture_ref
 
@@ -51,6 +52,11 @@ def test_reset_after_episode_end(env):
                          [fixture_ref(env)])
 def test_observation_space(env):
     obs = env.reset()
+    expected_agent_i_shape = (np.prod(env._agent_view_mask) * (env.n_agents + 2 + 3),)
+    for agent_i in range(env.n_agents):
+        assert obs[agent_i].shape == expected_agent_i_shape, \
+            'shape of obs. expected to be {}; but found to be {}'.format(expected_agent_i_shape, obs[agent_i].shape)
+
     assert env.observation_space.contains(obs), 'Observation must be part of the observation space'
     done = [False for _ in range(env.n_agents)]
     while not all(done):

@@ -107,7 +107,7 @@ class TrafficJunction(gym.Env):
         self._agent_turned = [False for _ in range(self.n_agents)]  # flag if car changed direction
         self._agents_routes = [-1 for _ in range(self.n_agents)]  # route each car is following atm
         self._agents_direction = [(0, 0) for _ in range(self.n_agents)]  # cars are not on the road initially
-        self._agent_step_count = [0 for _ in range(self.n_agents)]  # holds a step coutner for each car
+        self._agent_step_count = [0 for _ in range(self.n_agents)]  # holds a step counter for each car
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(2) for _ in range(self.n_agents)])
         self.agent_pos = {_: None for _ in range(self.n_agents)}

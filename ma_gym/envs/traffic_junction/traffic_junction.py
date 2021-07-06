@@ -52,7 +52,7 @@ class TrafficJunction(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, grid_shape=(14, 14), step_cost=0, n_max=4, collision_reward=-10, arrive_prob=0.5,
+    def __init__(self, grid_shape=(14, 14), step_cost=-0.01, n_max=4, collision_reward=-10, arrive_prob=0.5,
                  full_observable: bool = False, max_steps: int = 40):
         assert 1 <= n_max <= 10, "n_max should be range in [1,10]"
         assert 0 <= arrive_prob <= 1, "arrive probability should be in range [0,1]"
@@ -328,7 +328,7 @@ class TrafficJunction(gym.Env):
             # once a car reaches it's destination , it will never enter again in any of the tracks
             # Also, if all cars have reached their destination, then we terminate the episode.
             if self.__reached_dest(agent_i):
-                self._agent_dones[agent_i] = True  
+                self._agent_dones[agent_i] = True
                 self.curr_cars_count -= 1
 
             # if max_steps was reached, terminate the episode

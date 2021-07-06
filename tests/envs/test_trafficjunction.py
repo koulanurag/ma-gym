@@ -19,6 +19,8 @@ def test_init(env):
 def test_reset(env):
     env.reset()
     assert env._step_count == 0, 'Step count should be 0 after reset, got {}'.format(env._step_count)
+    assert env._agent_step_count == [0 for _ in range(env.n_agents)], 'Agent step count should be 0 for all agents'\
+                                                                      ' after reset'
     assert env._total_episode_reward == [0 for _ in range(env.n_agents)], 'Total reward should be 0 after reset'
     assert env._agent_dones == [False for _ in range(env.n_agents)], 'Agents cannot be done when the environment' \
                                                                      ' resets'

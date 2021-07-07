@@ -137,7 +137,6 @@ def test_one_gas_others_brake_rollout_env4(env):
         agent_0_route_idx = np.where(agent_0_route == 1)[0][0] 
         max_agent_0_steps = route_max_steps[agent_0_route_idx]
         while not all(done):  # small number of steps so that no collision occurs
-            env.render()
             obs, reward_n, done, _ = env.step([0] + [1 for _ in range(env.n_agents - 1)])
             target_reward = [env._step_cost * (step_i + 1) for _ in range(env.n_agents)]
             # once the car reaches destination, there is no step cost

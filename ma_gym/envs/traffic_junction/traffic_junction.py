@@ -20,7 +20,7 @@ class TrafficJunction(gym.Env):
     """
     This consists of a 4-way junction on a 14 × 14 grid. At each time step, "new" cars enter the grid with
     probability `p_arrive` from each of the four directions. However, the total number of cars at any given
-    time is limited to `Nmax = 10`.
+    time is limited to `Nmax`.
 
     Each car occupies a single cell at any given time and is randomly assigned to one of three possible routes
     (keeping to the right-hand side of the road). At every time step, a car has two possible actions: gas which advances
@@ -35,11 +35,12 @@ class TrafficJunction(gym.Env):
     r(t) = C^t * r_coll + \sum_{i=1}_{N^t} {\tau_i * r_time}
 
     where C^t is the number of collisions occurring at time t and N^t is number of cars present. The simulation is
-    terminated after 40 steps and is classified as a failure if one or more collisions have occurred.
+    terminated after 'max_steps(default:40)' steps and is classified as a failure if one or more collisions have
+    occurred.
 
     Each car is represented by one-hot binary vector set {n, l, r}, that encodes its unique ID, current location
     and assigned route number respectively. Each agent controlling a car can only observe other cars in its vision
-    range (a surrounding 3 × 3 neighborhood).
+    range (a surrounding 3 × 3 neighborhood), though low level communication is allowed in "v1" version of the game.
 
     The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
     (3^2) × (|n| + |l| + |r|).
@@ -49,6 +50,7 @@ class TrafficJunction(gym.Env):
 
 
     For details on various versions, please refer to "wiki"
+    (https://github.com/koulanurag/ma-gym/wiki/Environments#TrafficJunction)
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
@@ -152,7 +154,7 @@ class TrafficJunction(gym.Env):
                 self.agent_pos[agent_i] = pos
                 self.curr_cars_count += 1
                 self._on_the_road[agent_i] = True
-                self._agents_routes[agent_i] = random.randint(1, self._n_routes)  # (1,3)
+                self._agents_routes[agent_i] = random.randint(1, self._n_routes)  # [1,3] (inclusive)
             self.__update_agent_view(agent_i)
 
         self.__draw_base_img()
@@ -214,7 +216,7 @@ class TrafficJunction(gym.Env):
         The state vector s_j for each agent is thus a concatenation of all these vectors, having dimension
         (3^2) × (|n| + |l| + |r|).
 
-        :return: list with observations of all agents. the full list has shape (n_agents, (3^2) × |n| × |l| × |r|)
+        :return: list with observations of all agents. the full list has shape (n_agents, (3^2) × (|n| + |l| + |r|))
         :rtype: list
         """
         agent_no_mask_obs = []

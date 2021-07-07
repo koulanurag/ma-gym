@@ -165,7 +165,7 @@ def test_all_gas_all_routes_forward_rollout_env4(env):
     env._agents_routes = [1 for _ in range(env.n_agents)]  # changes all routes to fwd
     step_i = 0
     done = [False for _ in range(env.n_agents)]
-    while not all(done):  # small number of steps so that no collision occurs
+    while not all(done):
         _, reward_n, done, info = env.step([0 for _ in range(env.n_agents)])  # all gas
         target_reward = [env._step_cost * (step_i + 1) for _ in range(env.n_agents)]
         if step_i >= 6:

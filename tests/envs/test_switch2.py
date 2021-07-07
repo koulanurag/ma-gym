@@ -1,19 +1,18 @@
 import gym
 import pytest
-import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Switch2-v0')
+    env = gym.make('ma_gym:Switch2-v0')
     yield env
     env.close()
 
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('Switch2-v1')
+    env = gym.make('ma_gym:Switch2-v1')
     yield env
     env.close()
 
@@ -25,8 +24,7 @@ def test_init(env):
 def test_reset(env):
     obs_n = env.reset()
 
-    target_obs_n = [[0, 0.17],
-                    [0, 0.83]]
+    target_obs_n = [[0, 0.17], [0, 0.83]]
     assert env._step_count == 0
     assert env._total_episode_reward == [0 for _ in range(env.n_agents)]
     assert env._agent_dones == [False for _ in range(env.n_agents)]
@@ -90,3 +88,40 @@ def test_observation_space(env):
         assert env.observation_space.contains(obs)
     assert env.observation_space.contains(obs)
     assert env.observation_space.contains(env.observation_space.sample())
+
+
+@parametrize_plus('env',
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
+def test_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        obs, reward_n, done, _ = env.step(env.action_space.sample())
+        assert env.observation_space.contains(obs)
+    assert env.observation_space.contains(obs)
+    assert env.observation_space.contains(env.observation_space.sample())
+
+
+@parametrize_plus('env',
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
+def test_optimal_rollout(env):
+    actions = [[4, 0], [4, 1], [4, 1], [4, 1], [4, 1], [4, 1], [0, 2], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [2, 4]]
+    target_rewards = [[-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, 5],
+                      [-0.1, 0], [-0.1, 0], [-0.1, 0], [-0.1, 0], [-0.1, 0], [5, 0]]
+    target_dones = [[False, False], [False, False], [False, False], [False, False], [False, False], [False, False],
+                    [False, True], [False, True], [False, True], [False, True], [False, True], [False, True],
+                    [True, True]]
+
+    for _ in range(2):  # multiple episodes to ensure it works after reset as well
+        env.reset()
+        done = [False for _ in range(env.n_agents)]
+        step_i = 0
+        while not all(done):
+            obs, reward_n, done, _ = env.step(actions[step_i])
+            assert reward_n == target_rewards[step_i], 'Expected {}, Got {} at step {}'.format(target_rewards[step_i],
+                                                                                               reward_n, step_i)
+            assert done == target_dones[step_i]
+            step_i += 1

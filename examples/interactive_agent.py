@@ -1,7 +1,5 @@
 import argparse
-
 import gym
-
 from ma_gym.wrappers import Monitor
 
 if __name__ == '__main__':
@@ -15,7 +13,7 @@ if __name__ == '__main__':
     print('Enter the actions space together and press enter ( Eg: \'11<enter>\' which meanes take 1'
           ' for agent 1 and 1 for agent 2)')
 
-    env = gym.make(args.env)
+    env = gym.make('ma_gym:{}'.format(args.env))
     env = Monitor(env, directory='recordings', force=True)
     for ep_i in range(args.episodes):
         done_n = [False for _ in range(env.n_agents)]

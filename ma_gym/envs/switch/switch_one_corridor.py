@@ -154,6 +154,8 @@ class Switch(gym.Env):
                 self._agent_dones[agent_i] = self.__is_agent_done(agent_i)
                 if self._agent_dones[agent_i]:
                     rewards[agent_i] = 5
+            else:
+                rewards[agent_i] = 0
 
         if self._step_count >= self._max_steps:
             for i in range(self.n_agents):

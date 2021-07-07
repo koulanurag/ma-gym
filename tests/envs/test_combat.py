@@ -1,12 +1,11 @@
 import gym
 import pytest
-import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Combat-v0')
+    env = gym.make('ma_gym:Combat-v0')
     yield env
     env.close()
 

@@ -88,3 +88,39 @@ def test_observation_space(env):
         assert env.observation_space.contains(obs)
     assert env.observation_space.contains(obs)
     assert env.observation_space.contains(env.observation_space.sample())
+
+
+@parametrize_plus('env',
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
+def test_observation_space(env):
+    obs = env.reset()
+    assert env.observation_space.contains(obs)
+    done = [False for _ in range(env.n_agents)]
+    while not all(done):
+        obs, reward_n, done, _ = env.step(env.action_space.sample())
+        assert env.observation_space.contains(obs)
+    assert env.observation_space.contains(obs)
+    assert env.observation_space.contains(env.observation_space.sample())
+
+
+@parametrize_plus('env',
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
+def test_optimal_rollout(env):
+    actions = [[4, 0], [4, 1], [4, 1], [4, 1], [4, 1], [4, 1], [0, 2], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [2, 4]]
+    target_rewards = [[-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, 5],
+                      [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [5, -0.1]]
+    target_dones = [[False, False], [False, False], [False, False], [False, False], [False, False], [False, False],
+                    [False, True], [False, True], [False, True], [False, True], [False, True], [False, True],
+                    [True, True]]
+
+    for _ in range(2):  # multiple episodes to ensure it works after reset as well
+        obs = env.reset()
+        done = [False for _ in range(env.n_agents)]
+        step_i = 0
+        while not all(done):
+            obs, reward_n, done, _ = env.step(actions[step_i])
+            assert reward_n == target_rewards[step_i]
+            assert done == target_dones[step_i]
+            step_i += 1

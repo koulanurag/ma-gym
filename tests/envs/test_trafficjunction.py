@@ -116,7 +116,7 @@ def test_all_brake_rollout_env4(env):
             step_i += 1
             assert (reward_n == target_reward), \
                 'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)
-    assert step_i == env._max_steps, 'max-steps should be reached'
+        assert step_i == env._max_steps, 'max-steps should be reached'
 
 
 @pytest_parametrize_plus('env',
@@ -148,4 +148,4 @@ def test_one_gas_others_brake_rollout_env4(env):
                                                                                                       reward_n,
                                                                                                       episode_i,
                                                                                                       agent_0_route)
-    assert step_i == env._max_steps, 'max-steps should be reached'
+        assert step_i == env._max_steps, 'max-steps should be reached'

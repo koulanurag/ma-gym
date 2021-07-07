@@ -1,19 +1,18 @@
 import gym
 import pytest
-import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Checkers-v0')
+    env = gym.make('ma_gym:Checkers-v0')
     yield env
     env.close()
 
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('Checkers-v1')
+    env = gym.make('ma_gym:Checkers-v1')
     yield env
     env.close
 
@@ -113,12 +112,10 @@ def test_rollout(env):
 
         env.reset()
         done = [False for _ in range(env.n_agents)]
-        env.render()
         for step_i in range(len(actions)):
             obs, reward_n, done, _ = env.step(actions[step_i])
             assert reward_n == target_rewards[step_i]
             step_i += 1
-            env.render()
 
         assert done == [True for _m in range(env.n_agents)]
 

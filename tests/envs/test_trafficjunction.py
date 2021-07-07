@@ -5,18 +5,29 @@ from pytest_cases import pytest_parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
-def env():
-    env = gym.make('ma_gym:TrafficJunction-v0')
+def env_4():
+    env = gym.make('ma_gym:TrafficJunction4-v0')
     yield env
     env.close()
 
 
+@pytest.fixture(scope='module')
+def env_10():
+    env = gym.make('ma_gym:TrafficJunction10-v0')
+    yield env
+    env.close()
+
+
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env_4), fixture_ref(env_10)])
 def test_init(env):
     assert 1 <= env._n_max <= 10, 'N_max must be between 1 and 10, got {}'.format(env._n_max)
     assert env._on_the_road.count(True) <= len(env._entry_gates), 'Cars on the road after initializing cannot ' \
                                                                   'be higher than {}'.format(len(env._entry_gates))
 
 
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env_4), fixture_ref(env_10)])
 def test_reset(env):
     env.reset()
     assert env._step_count == 0, 'Step count should be 0 after reset, got {}'.format(env._step_count)
@@ -29,6 +40,8 @@ def test_reset(env):
                                                                       ' when the environment resets'
 
 
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env_4), fixture_ref(env_10)])
 def test_reset_after_episode_end(env):
     env.reset()
     done = [False for _ in range(env.n_agents)]
@@ -49,7 +62,7 @@ def test_reset_after_episode_end(env):
 
 
 @pytest_parametrize_plus('env',
-                         [fixture_ref(env)])
+                         [fixture_ref(env_4), fixture_ref(env_10)])
 def test_observation_space(env):
     obs = env.reset()
     expected_agent_i_shape = (np.prod(env._agent_view_mask) * (env.n_agents + 2 + 3),)
@@ -68,11 +81,22 @@ def test_observation_space(env):
 
 
 @pytest_parametrize_plus('env',
-                         [fixture_ref(env)])
-def test_step_cost(env):
+                         [fixture_ref(env_4)])
+def test_step_cost_env4(env):
     env.reset()
-    for step_i in range(3):
+    for step_i in range(3):  # small number of steps so that no collision occurs
         obs, reward_n, done, _ = env.step(env.action_space.sample())
         target_reward = [env._step_cost * (step_i + 1) for _ in range(env.n_agents)]
+        assert (reward_n == target_reward), \
+            'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)
+
+
+@pytest_parametrize_plus('env',
+                         [fixture_ref(env_10)])
+def test_step_cost_env10(env):
+    env.reset()
+    for step_i in range(1):  # just 1 step so that no collision occurs
+        obs, reward_n, done, _ = env.step(env.action_space.sample())
+        target_reward = [env._step_cost * (step_i + 1) for _ in range(4)] + [0 for _ in range(env.n_agents - 4)]
         assert (reward_n == target_reward), \
             'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)

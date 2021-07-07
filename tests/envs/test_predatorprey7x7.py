@@ -1,19 +1,18 @@
 import gym
 import pytest
-import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('PredatorPrey7x7-v0')
+    env = gym.make('ma_gym:PredatorPrey7x7-v0')
     yield env
     env.close()
 
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('PredatorPrey7x7-v1')
+    env = gym.make('ma_gym:PredatorPrey7x7-v1')
     yield env
     env.close()
 

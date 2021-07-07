@@ -1,19 +1,18 @@
 import gym
 import pytest
-import ma_gym
 from pytest_cases import parametrize_plus, fixture_ref
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('Switch2-v0')
+    env = gym.make('ma_gym:Switch2-v0')
     yield env
     env.close()
 
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('Switch2-v1')
+    env = gym.make('ma_gym:Switch2-v1')
     yield env
     env.close()
 
@@ -25,8 +24,7 @@ def test_init(env):
 def test_reset(env):
     obs_n = env.reset()
 
-    target_obs_n = [[0, 0.17],
-                    [0, 0.83]]
+    target_obs_n = [[0, 0.17], [0, 0.83]]
     assert env._step_count == 0
     assert env._total_episode_reward == [0 for _ in range(env.n_agents)]
     assert env._agent_dones == [False for _ in range(env.n_agents)]

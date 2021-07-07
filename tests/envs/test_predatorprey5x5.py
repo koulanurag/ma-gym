@@ -6,14 +6,14 @@ from pytest_cases import parametrize_plus, fixture_ref
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('PredatorPrey5x5-v0')
+    env = gym.make('ma_gym:PredatorPrey5x5-v0')
     yield env
     env.close()
 
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('PredatorPrey5x5-v1')
+    env = gym.make('ma_gym:PredatorPrey5x5-v1')
     yield env
     env.close()
 

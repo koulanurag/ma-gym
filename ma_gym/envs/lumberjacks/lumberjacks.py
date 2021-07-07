@@ -133,11 +133,11 @@ class Lumberjacks(gym.Env):
         return self.get_agent_obs()
 
     def _init_episode(self):
-        """Initialize environment for next episode.
+        """Initialize environment for new episode.
 
         Fills `self._agents`, self._agent_map` and `self._tree_map` with new values.
         """
-        init_possitions = self._generate_init_pos()
+        init_positions = self._generate_init_pos()
         agent_id, tree_id = 0, self.n_agents
         self._agents = []
         self._agent_map = np.zeros((
@@ -150,7 +150,7 @@ class Lumberjacks(gym.Env):
             self._grid_shape[1] + 2 * (self._agent_view[1]),
         ), dtype=np.int32)
 
-        for pos, cell in np.ndenumerate(init_possitions):
+        for pos, cell in np.ndenumerate(init_positions):
             pos = self._to_extended_coordinates(pos)
             if cell == PRE_IDS['agent']:
                 self._agent_map[pos[0], pos[1], agent_id] = 1
@@ -162,11 +162,11 @@ class Lumberjacks(gym.Env):
 
     def _to_extended_coordinates(self, relative_coordinates):
         """Translate relative coordinates in to the extended coordinates."""
-        return (relative_coordinates[0] + self._agent_view[0], relative_coordinates[1] + self._agent_view[1])
+        return relative_coordinates[0] + self._agent_view[0], relative_coordinates[1] + self._agent_view[1]
 
     def _to_relative_coordinates(self, extended_coordinates):
         """Translate extended coordinates in to the relative coordinates."""
-        return (extended_coordinates[0] - self._agent_view[0], extended_coordinates[1] - self._agent_view[1])
+        return extended_coordinates[0] - self._agent_view[0], extended_coordinates[1] - self._agent_view[1]
 
     def _generate_init_pos(self) -> np.ndarray:
         """Returns randomly selected initial positions for agents and trees in relative coordinates.
@@ -183,7 +183,6 @@ class Lumberjacks(gym.Env):
 
     def render(self, mode='human'):
         img = copy.copy(self._base_img)
-        cell_size = (CELL_SIZE, CELL_SIZE / 2)
 
         mask = (
             slice(self._agent_view[0], self._agent_view[0] + self._grid_shape[0]),

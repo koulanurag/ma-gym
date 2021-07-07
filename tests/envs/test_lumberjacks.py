@@ -13,7 +13,7 @@ def env():
 
 @pytest.fixture(scope='module')
 def env_full():
-    env = gym.make('Lumberjacks-v1')
+    env = gym.make('ma_gym:Lumberjacks-v1')
     yield env
     env.close()
 

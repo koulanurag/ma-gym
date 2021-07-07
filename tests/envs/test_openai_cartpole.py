@@ -1,11 +1,10 @@
 import gym
 import pytest
-import ma_gym
 
 
 @pytest.fixture(scope='module')
 def env():
-    env = gym.make('ma_CartPole-v0')
+    env = gym.make('ma_gym:ma_CartPole-v0')
     yield env
     env.close()
 

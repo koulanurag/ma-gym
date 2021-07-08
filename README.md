@@ -1,5 +1,5 @@
 # ma-gym
-A collection of multi agent environments based on OpenAI gym.
+It's a collection of multi agent environments based on OpenAI gym. Also, you can use [**minimal-marl**](https://github.com/koulanurag/minimal-marl) to warm-start training of agents.
 
 ![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg) 
 ![Upload Python Package](https://github.com/koulanurag/ma-gym/workflows/Upload%20Python%20Package/badge.svg)

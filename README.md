@@ -45,7 +45,7 @@ while not all(done_n):
 env.close()
 ```
 
-Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Usage) for complete usage details
+Please refer to [**Wiki**](https://github.com/koulanurag/ma-gym/wiki/Usage) for complete usage details
 
 ## Environments:
 - [x] Checkers

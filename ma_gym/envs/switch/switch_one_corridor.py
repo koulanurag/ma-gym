@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 class Switch(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable: bool = False, step_cost: float = 0, n_agents: int = 4, max_steps: int = 50):
+    def __init__(self, full_observable: bool = False, step_cost: float = 0, n_agents: int = 4, max_steps: int = 50,
+                 clock: bool = True):
         assert 2 <= n_agents <= 4, 'Number of Agents has to be in range [2,4]'
         self._grid_shape = (3, 7)
         self.n_agents = n_agents
@@ -24,6 +25,7 @@ class Switch(gym.Env):
         self._step_count = None
         self._step_cost = step_cost
         self._total_episode_reward = None
+        self._add_clock = clock
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 
@@ -44,8 +46,8 @@ class Switch(gym.Env):
 
         self.full_observable = full_observable
         # agent pos (2)
-        self._obs_high = np.array([1., 1.], dtype=np.float32)
-        self._obs_low = np.array([0., 0.], dtype=np.float32)
+        self._obs_high = np.ones(2 + (1 if self._add_clock else 0))
+        self._obs_low = np.zeros(2 + (1 if self._add_clock else 0))
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
@@ -91,7 +93,8 @@ class Switch(gym.Env):
             pos = self.agent_pos[agent_i]
             _agent_i_obs = [round(pos[0] / (self._grid_shape[0] - 1), 2),
                             round(pos[1] / (self._grid_shape[1] - 1), 2)]
-            # _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
+            if self._add_clock:
+                _agent_i_obs += [self._step_count / self._max_steps]  # add current step count (for time reference)
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

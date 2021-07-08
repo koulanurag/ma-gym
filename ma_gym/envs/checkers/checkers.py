@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 class Checkers(gym.Env):
     """
-    The map contains apples and lemons. The first player (red) is very sensitive and scores 5 for
-    the team for an apple (green square) and −5 for a lemon (orange square). The second (blue), less sensitive
+    The map contains apples and lemons. The first player (red) is very sensitive and scores 10 for
+    the team for an apple (green square) and −10 for a lemon (orange square). The second (blue), less sensitive
     player scores 1 for the team for an apple and −1 for a lemon. There is a wall of lemons between the
     players and the apples. Apples and lemons disappear when collected, and the environment resets
     when all apples are eaten. It is important that the sensitive agent eats the apples while the less sensitive
@@ -44,7 +44,7 @@ class Checkers(gym.Env):
             [spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
         self.init_agent_pos = {0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
-        self.agent_reward = {0: {'lemon': -5, 'apple': 5},
+        self.agent_reward = {0: {'lemon': -10, 'apple': 10},
                              1: {'lemon': -1, 'apple': 1}}
 
         self.agent_prev_pos = None

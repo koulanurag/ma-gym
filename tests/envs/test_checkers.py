@@ -49,7 +49,7 @@ def test_reset(env):
 
 @pytest.mark.parametrize('pos,valid',
                          [((-1, -1), False), ((-1, 0), False), ((-1, 8), False), ((3, 8), False)])
-def test_is_valid(env, pos, valid):
+def test_pos_validity(env, pos, valid):
     assert env.is_valid(pos) == valid
 
 
@@ -135,3 +135,26 @@ def test_max_steps(env):
             step_i += 1
         assert step_i == env._max_steps
         assert done == [True for _m in range(env.n_agents)]
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_collision(env):
+    for episode_i in range(2):
+        env.reset()
+        obs_1, reward_n, done, _ = env.step([0, 2])
+        obs_2, reward_n, done, _ = env.step([0, 2])
+
+        assert obs_1 == obs_2
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_revisit_fruit_cell(env):
+    for episode_i in range(2):
+        env.reset()
+        obs_1, reward_1, done, _ = env.step([1, 1])
+        obs_2, reward_2, done, _ = env.step([3, 3])
+        obs_3, reward_3, done, _ = env.step([1, 1])
+
+        assert reward_1 != reward_3

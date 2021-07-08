@@ -267,7 +267,6 @@ OBSERVATION_MEANING = {
 # each pre-id should be unique and single char
 PRE_IDS = {
     'agent': 'A',
-    'prey': 'P',
     'wall': 'W',
     'empty': '0',
     'lemon': 'Y',  # yellow color

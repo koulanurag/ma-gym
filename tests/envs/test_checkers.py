@@ -27,14 +27,14 @@ def test_reset(env):
 
     # add agent 1 obs
     agent_1_obs = [0.0, 0.86]
-    agent_1_obs += np.array([[0, 0, 0],
-                             [1, 3, 0],
-                             [2, 0, 0]]).flatten().tolist()
+    agent_1_obs += np.array([[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+                             [[1, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0]],
+                             [[0, 1, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]]).flatten().tolist()
     # add agent 2 obs
     agent_2_obs = [0.67, 0.86]
-    agent_2_obs += np.array([[2, 0, 0],
-                             [1, 3, 0],
-                             [0, 0, 0]]).flatten().tolist()
+    agent_2_obs += np.array([[[0, 1, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+                             [[1, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 0]],
+                             [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]]).flatten().tolist()
 
     init_obs_n = [agent_1_obs, agent_2_obs]
 
@@ -49,20 +49,23 @@ def test_reset(env):
 
 @pytest.mark.parametrize('pos,valid',
                          [((-1, -1), False), ((-1, 0), False), ((-1, 8), False), ((3, 8), False)])
-def test_is_valid(env, pos, valid):
+def test_pos_validity(env, pos, valid):
     assert env.is_valid(pos) == valid
 
 
 @pytest.mark.parametrize('action_n,output',
                          [([1, 1],  # action
-                           ([[0.0, 0.71, 0.0, 0.0, 0.0, 2.0, 3.0, 0.0, 1.0, 2.0, 0.0],
-                             [0.67, 0.71, 1.0, 2.0, 0.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]],  # obs
+                           ([[0.0, 0.71, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+                              0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                             [0.67, 0.71, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
                             {'lemon': 7, 'apple': 9}))])  # food_count
 def test_step(env, action_n, output):
     env.reset()
     target_obs_n, food_count = output
     obs_n, reward_n, done_n, info = env.step(action_n)
 
+    assert obs_n == target_obs_n, 'observation does not match . Expected {}. Got {}'.format(target_obs_n, obs_n)
     for k, v in food_count.items():
         assert info['food_count'][k] == food_count[k], '{} does not match'.format(k)
     assert env._step_count == 1
@@ -99,18 +102,18 @@ def test_observation_space(env):
     assert env.observation_space.contains(env.observation_space.sample())
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
-def test_rollout(env):
+@parametrize_plus('env', [fixture_ref(env)])
+def test_rollout_env(env):
     actions = [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
                [0, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4]]
-    target_rewards = [[-5.01, -1.01], [4.99, 0.99], [-5.01, -1.01], [4.99, 0.99],
-                      [-5.01, -1.01], [4.99, 0.99], [-0.01, -0.01], [-0.01, -0.01],
-                      [-5.01, -0.01], [4.99, -0.01], [-5.01, -0.01], [4.99, -0.01],
-                      [-5.01, -0.01], [4.99, -0.01]]
-    for episode_i in range(2):
+    target_rewards = [[-10.01, -1.01], [9.99, 0.99], [-10.01, -1.01], [9.99, 0.99],
+                      [-10.01, -1.01], [9.99, 0.99], [-0.01, -0.01], [-0.01, -0.01],
+                      [-10.01, -0.01], [9.99, -0.01], [-10.01, -0.01], [9.99, -0.01],
+                      [-10.01, -0.01], [9.99, -0.01]]
 
-        env.reset()
+    for episode_i in range(1):  # multiple episode to validate the seq. again on reset.
+
+        obs = env.reset()
         done = [False for _ in range(env.n_agents)]
         for step_i in range(len(actions)):
             obs, reward_n, done, _ = env.step(actions[step_i])
@@ -132,3 +135,26 @@ def test_max_steps(env):
             step_i += 1
         assert step_i == env._max_steps
         assert done == [True for _m in range(env.n_agents)]
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_collision(env):
+    for episode_i in range(2):
+        env.reset()
+        obs_1, reward_n, done, _ = env.step([0, 2])
+        obs_2, reward_n, done, _ = env.step([0, 2])
+
+        assert obs_1 == obs_2
+
+
+@parametrize_plus('env', [fixture_ref(env),
+                          fixture_ref(env_full)])
+def test_revisit_fruit_cell(env):
+    for episode_i in range(2):
+        env.reset()
+        obs_1, reward_1, done, _ = env.step([1, 1])
+        obs_2, reward_2, done, _ = env.step([3, 3])
+        obs_3, reward_3, done, _ = env.step([1, 1])
+
+        assert reward_1 != reward_3

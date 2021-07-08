@@ -35,13 +35,13 @@ class Checkers(gym.Env):
         self.full_observable = full_observable
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-        self._obs_high = np.array([1.0, 1.0] + [max(OBSERVATION_MEANING.keys())] * 9, dtype=np.float32)
-        self._obs_low = np.array([0.0, 0.0] + [min(OBSERVATION_MEANING.keys())] * 9, dtype=np.float32)
+        self._obs_high = np.ones(2 + (3 * 3 * 5))
+        self._obs_low = np.zeros(2 + (3 * 3 * 5))
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
-        self.observation_space = MultiAgentObservationSpace(
-            [spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high)
+                                                             for _ in range(self.n_agents)])
 
         self.init_agent_pos = {0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
         self.agent_reward = {0: {'lemon': -10, 'apple': 10},
@@ -107,19 +107,19 @@ class Checkers(gym.Env):
 
             # add 3 x3 mask around the agent current location and share neighbours
             # ( in practice: this information may not be so critical since the map never changes)
-            _agent_i_neighbour = np.zeros((3, 3))
+            _agent_i_neighbour = np.zeros((3, 3, 5))
             for r in range(pos[0] - 1, pos[0] + 2):
                 for c in range(pos[1] - 1, pos[1] + 2):
                     if self.is_valid((r, c)):
-                        item = 0
+                        item = [0, 0, 0, 0, 0]
                         if PRE_IDS['lemon'] in self._full_obs[r][c]:
-                            item = 1
+                            item[ITEM_ONE_HOT_INDEX['lemon']] = 1
                         elif PRE_IDS['apple'] in self._full_obs[r][c]:
-                            item = 2
+                            item[ITEM_ONE_HOT_INDEX['apple']] = 1
                         elif PRE_IDS['agent'] in self._full_obs[r][c]:
-                            item = 3
+                            item[ITEM_ONE_HOT_INDEX[self._full_obs[r][c]]] = 1
                         elif PRE_IDS['wall'] in self._full_obs[r][c]:
-                            item = -1
+                            item[ITEM_ONE_HOT_INDEX['wall']] = 1
                         _agent_i_neighbour[r - (pos[0] - 1)][c - (pos[1] - 1)] = item
             _agent_i_obs += _agent_i_neighbour.flatten().tolist()
 
@@ -277,6 +277,13 @@ PRE_IDS = {
 AGENT_COLORS = {
     0: 'red',
     1: 'blue'
+}
+ITEM_ONE_HOT_INDEX = {
+    'lemon': 0,
+    'apple': 1,
+    'A1': 2,
+    'A2': 3,
+    'wall': 4,
 }
 WALL_COLOR = 'black'
 LEMON_COLOR = 'yellow'

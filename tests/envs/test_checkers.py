@@ -63,6 +63,7 @@ def test_step(env, action_n, output):
     target_obs_n, food_count = output
     obs_n, reward_n, done_n, info = env.step(action_n)
 
+    assert obs_n == target_obs_n, 'observation does not match . Expected {}. Got {}'.format(target_obs_n, obs_n)
     for k, v in food_count.items():
         assert info['food_count'][k] == food_count[k], '{} does not match'.format(k)
     assert env._step_count == 1
@@ -99,18 +100,18 @@ def test_observation_space(env):
     assert env.observation_space.contains(env.observation_space.sample())
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
-def test_rollout(env):
+@parametrize_plus('env', [fixture_ref(env)])
+def test_rollout_env(env):
     actions = [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
                [0, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4]]
-    target_rewards = [[-5.01, -1.01], [4.99, 0.99], [-5.01, -1.01], [4.99, 0.99],
-                      [-5.01, -1.01], [4.99, 0.99], [-0.01, -0.01], [-0.01, -0.01],
-                      [-5.01, -0.01], [4.99, -0.01], [-5.01, -0.01], [4.99, -0.01],
-                      [-5.01, -0.01], [4.99, -0.01]]
-    for episode_i in range(2):
+    target_rewards = [[-10.01, -1.01], [9.99, 0.99], [-10.01, -1.01], [9.99, 0.99],
+                      [-10.01, -1.01], [9.99, 0.99], [-0.01, -0.01], [-0.01, -0.01],
+                      [-10.01, -0.01], [9.99, -0.01], [-10.01, -0.01], [9.99, -0.01],
+                      [-10.01, -0.01], [9.99, -0.01]]
 
-        env.reset()
+    for episode_i in range(1):  # multiple episode to validate the seq. again on reset.
+
+        obs = env.reset()
         done = [False for _ in range(env.n_agents)]
         for step_i in range(len(actions)):
             obs, reward_n, done, _ = env.step(actions[step_i])

@@ -3,6 +3,8 @@ It's a collection of multi agent environments based on OpenAI gym. Also, you can
 
 ![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg) 
 ![Upload Python Package](https://github.com/koulanurag/ma-gym/workflows/Upload%20Python%20Package/badge.svg)
+[![Wiki Docs](https://img.shields.io/badge/-Wiki%20Docs-informational?style=flat)](https://github.com/koulanurag/ma-gym/wiki)
+
 
 ## Installation
 Using PyPI:

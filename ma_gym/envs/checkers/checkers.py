@@ -26,17 +26,18 @@ class Checkers(gym.Env):
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
 
-    def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100):
+    def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100, clock=True):
         self._grid_shape = (3, 8)
         self.n_agents = 2
         self._max_steps = max_steps
         self._step_count = None
         self._step_cost = step_cost
         self.full_observable = full_observable
+        self._add_clock = clock
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-        self._obs_high = np.ones(2 + (3 * 3 * 5))
-        self._obs_low = np.zeros(2 + (3 * 3 * 5))
+        self._obs_high = np.ones(2 + (3 * 3 * 5) + (1 if clock else 0))
+        self._obs_low = np.zeros(2 + (3 * 3 * 5) + (1 if clock else 0))
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
@@ -124,7 +125,8 @@ class Checkers(gym.Env):
             _agent_i_obs += _agent_i_neighbour.flatten().tolist()
 
             # adding time
-            # _agent_i_obs += [self._step_count / self._max_steps]
+            if self._add_clock:
+                _agent_i_obs += [self._step_count / self._max_steps]
             _obs.append(_agent_i_obs)
 
         if self.full_observable:

@@ -17,11 +17,6 @@ for spec in env_specs:
 
 # add new environments : iterate over full observability
 for i, observability in enumerate([False, True]):
-    register(
-        id='CrossOver-v' + str(i),
-        entry_point='ma_gym.envs.crossover:CrossOver',
-        kwargs={'full_observable': observability, 'step_cost': -0.5}
-    )
 
     register(
         id='Checkers-v' + str(i),

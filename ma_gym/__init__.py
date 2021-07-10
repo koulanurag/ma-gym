@@ -24,16 +24,17 @@ for i, observability in enumerate([False, True]):
         kwargs={'full_observable': observability}
     )
 
-    register(
-        id='Switch2-v' + str(i),
-        entry_point='ma_gym.envs.switch:Switch',
-        kwargs={'n_agents': 2, 'full_observable': observability, 'step_cost': -0.1}
-    )
-    register(
-        id='Switch4-v' + str(i),
-        entry_point='ma_gym.envs.switch:Switch',
-        kwargs={'n_agents': 4, 'full_observable': observability, 'step_cost': -0.1}
-    )
+    for clock in [False, True]:
+        register(
+            id='Switch2-v{}'.format(i + (2 if clock else 0)),
+            entry_point='ma_gym.envs.switch:Switch',
+            kwargs={'n_agents': 2, 'full_observable': observability, 'step_cost': -0.1, 'clock': clock}
+        )
+        register(
+            id='Switch4-v{}'.format(i + (2 if clock else 0)),
+            entry_point='ma_gym.envs.switch:Switch',
+            kwargs={'n_agents': 4, 'full_observable': observability, 'step_cost': -0.1, 'clock': clock}
+        )
 
     for num_max_cars in [4, 10]:
         register(

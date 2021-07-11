@@ -20,7 +20,7 @@ for i, observability in enumerate([False, True]):
 
     for clock in [False, True]:
         register(
-            id='Checkers-v'.format(i + (2 if clock else 0)),
+            id='Checkers-v{}'.format(i + (2 if clock else 0)),
             entry_point='ma_gym.envs.checkers:Checkers',
             kwargs={'full_observable': observability}
         )

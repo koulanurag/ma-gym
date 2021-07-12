@@ -24,7 +24,7 @@ def test_init(env):
 def test_reset(env):
     obs_n = env.reset()
 
-    target_obs_n = [[0, 0.17, 0], [0, 0.83, 0]]
+    target_obs_n = [[0, 0.17], [0, 0.83]]
     assert env._step_count == 0
     assert env._total_episode_reward == [0 for _ in range(env.n_agents)]
     assert env._agent_dones == [False for _ in range(env.n_agents)]
@@ -47,7 +47,7 @@ def test_reset_after_episode_end(env):
 
 @pytest.mark.parametrize('action_n,output',
                          [([1, 1],  # action
-                           ([[0.0, 0.00, 0.02], [0, 0.83, 0.02]])  # obs
+                           ([[0.0, 0.00], [0, 0.83]])  # obs
                            )])
 def test_step(env, action_n, output):
     obs_n = env.reset()

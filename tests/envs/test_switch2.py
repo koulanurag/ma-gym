@@ -125,3 +125,21 @@ def test_optimal_rollout(env):
                                                                                                reward_n, step_i)
             assert done == target_dones[step_i]
             step_i += 1
+
+
+@parametrize_plus('env',
+                  [fixture_ref(env),
+                   fixture_ref(env_full)])
+def test_max_steps(env):
+    """ All agent remain at their initial position for the entire duration"""
+    for _ in range(2):
+        env.reset()
+        step_i = 0
+        done = [False for _ in range(env.n_agents)]
+        while not all(done):
+            obs, reward_n, done, _ = env.step([4 for _ in range(env.n_agents)])
+            target_reward = [env._step_cost for _ in range(env.n_agents)]
+            step_i += 1
+            assert (reward_n == target_reward), \
+                'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)
+        assert step_i == env._max_steps, 'max-steps should be reached'

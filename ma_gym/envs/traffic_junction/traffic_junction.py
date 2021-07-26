@@ -229,7 +229,7 @@ class TrafficJunction(gym.Env):
             _agent_i_obs[agent_i] = 1
 
             # location
-            _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
+            _agent_i_obs += [pos[0] / (self._grid_shape[0] - 1), pos[1] / (self._grid_shape[1] - 1)]  # coordinates
 
             # route 
             route_agent_i = np.zeros(self._n_routes)

@@ -1,6 +1,6 @@
 import gym
 import pytest
-from pytest_cases import parametrize_plus, fixture_ref
+from pytest_cases import parametrize, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -45,8 +45,8 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
+@parametrize('env', [fixture_ref(env),
+                     fixture_ref(env_full)])
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)

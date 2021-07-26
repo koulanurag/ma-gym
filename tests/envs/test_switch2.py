@@ -1,6 +1,6 @@
 import gym
 import pytest
-from pytest_cases import parametrize_plus, fixture_ref
+from pytest_cases import parametrize, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -104,9 +104,9 @@ def test_observation_space(env):
     assert env.observation_space.contains(env.observation_space.sample())
 
 
-@parametrize_plus('env',
-                  [fixture_ref(env),
-                   fixture_ref(env_full)])
+@parametrize('env',
+             [fixture_ref(env),
+              fixture_ref(env_full)])
 def test_optimal_rollout(env):
     actions = [[4, 0], [4, 1], [4, 1], [4, 1], [4, 1], [4, 1], [0, 2], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4], [2, 4]]
     target_rewards = [[-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, -0.1], [-0.1, 5],
@@ -127,9 +127,9 @@ def test_optimal_rollout(env):
             step_i += 1
 
 
-@parametrize_plus('env',
-                  [fixture_ref(env),
-                   fixture_ref(env_full)])
+@parametrize('env',
+             [fixture_ref(env),
+              fixture_ref(env_full)])
 def test_max_steps(env):
     """ All agent remain at their initial position for the entire duration"""
     for _ in range(2):

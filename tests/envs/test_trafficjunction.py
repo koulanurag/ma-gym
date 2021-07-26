@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 import pytest
-from pytest_cases import pytest_parametrize_plus, fixture_ref
+from pytest_cases import parametrize, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -18,16 +18,16 @@ def env_10():
     env.close()
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4), fixture_ref(env_10)])
+@parametrize('env',
+             [fixture_ref(env_4), fixture_ref(env_10)])
 def test_init(env):
     assert 1 <= env._n_max <= 10, 'N_max must be between 1 and 10, got {}'.format(env._n_max)
     assert env._on_the_road.count(True) <= len(env._entry_gates), 'Cars on the road after initializing cannot ' \
                                                                   'be higher than {}'.format(len(env._entry_gates))
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4), fixture_ref(env_10)])
+@parametrize('env',
+             [fixture_ref(env_4), fixture_ref(env_10)])
 def test_reset(env):
     env.reset()
     assert env._step_count == 0, 'Step count should be 0 after reset, got {}'.format(env._step_count)
@@ -80,8 +80,8 @@ def test_observation_space(env):
                                                                            ' observation space'
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4)])
+@parametrize('env',
+             [fixture_ref(env_4)])
 def test_step_cost_env4(env):
     env.reset()
     for step_i in range(3):  # small number of steps so that no collision occurs
@@ -91,8 +91,8 @@ def test_step_cost_env4(env):
             'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_10)])
+@parametrize('env',
+             [fixture_ref(env_10)])
 def test_step_cost_env10(env):
     env.reset()
     for step_i in range(1):  # just 1 step so that no collision occurs
@@ -119,8 +119,8 @@ def test_all_brake_rollout_env4(env):
         assert step_i == env._max_steps, 'max-steps should be reached'
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4)])
+@parametrize('env',
+             [fixture_ref(env_4)])
 def test_one_gas_others_brake_rollout_env4(env):
     """
     "Agent 0" applies gas and others brake. This will mean that there will not be any collision and "Agent 0" will
@@ -134,7 +134,7 @@ def test_one_gas_others_brake_rollout_env4(env):
         route_max_steps = [13, 12, 14]  # routes [fwd, r, l]
         done = [False for _ in range(env.n_agents)]
         agent_0_route = obs[0].reshape((9, 9))[4][6:]  # one-hot
-        agent_0_route_idx = np.where(agent_0_route == 1)[0][0] 
+        agent_0_route_idx = np.where(agent_0_route == 1)[0][0]
         max_agent_0_steps = route_max_steps[agent_0_route_idx]
         while not all(done):  # small number of steps so that no collision occurs
             obs, reward_n, done, _ = env.step([0] + [1 for _ in range(env.n_agents - 1)])
@@ -145,14 +145,14 @@ def test_one_gas_others_brake_rollout_env4(env):
             step_i += 1
             assert (reward_n == target_reward), \
                 'step_cost is not correct. Expected {} ; Got {}, Episode {} Agent 0 route: {} '.format(target_reward,
-                                                                                                      reward_n,
-                                                                                                      episode_i,
-                                                                                                      agent_0_route)
+                                                                                                       reward_n,
+                                                                                                       episode_i,
+                                                                                                       agent_0_route)
         assert step_i == env._max_steps, 'max-steps should be reached'
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4)])
+@parametrize('env',
+             [fixture_ref(env_4)])
 def test_all_gas_all_routes_forward_rollout_env4(env):
     """
     All the agents apply gas and follow the forward route (1). This will mean that all the agents 
@@ -169,8 +169,8 @@ def test_all_gas_all_routes_forward_rollout_env4(env):
         target_reward = [env._step_cost * (step_i + 1) for _ in range(env.n_agents)]
         if step_i >= 6:
             target_reward = [target_reward[agent_i] + env._collision_reward for agent_i in range(env.n_agents)]
-            assert info['step_collisions'] == 4, 'collision count is not correct. '\
-                    'Expected 4 ; Got {}'.format(info['step_collisions'])
+            assert info['step_collisions'] == 4, 'collision count is not correct. ' \
+                                                 'Expected 4 ; Got {}'.format(info['step_collisions'])
         step_i += 1
         assert (reward_n == target_reward), \
             'collision reward is not correct. Expected {} ; Got {} '.format(target_reward, reward_n)

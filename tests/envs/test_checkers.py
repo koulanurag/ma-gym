@@ -1,6 +1,6 @@
 import gym
 import pytest
-from pytest_cases import parametrize_plus, fixture_ref
+from pytest_cases import parametrize, fixture_ref
 
 
 @pytest.fixture(scope='module')
@@ -89,8 +89,8 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
+@parametrize('env', [fixture_ref(env),
+                     fixture_ref(env_full)])
 def test_observation_space(env):
     obs = env.reset()
     assert env.observation_space.contains(obs)
@@ -102,7 +102,7 @@ def test_observation_space(env):
     assert env.observation_space.contains(env.observation_space.sample())
 
 
-@parametrize_plus('env', [fixture_ref(env)])
+@parametrize('env', [fixture_ref(env)])
 def test_rollout_env(env):
     actions = [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1],
                [0, 4], [3, 4], [3, 4], [3, 4], [3, 4], [3, 4]]
@@ -123,8 +123,8 @@ def test_rollout_env(env):
         assert done == [True for _m in range(env.n_agents)]
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
+@parametrize('env', [fixture_ref(env),
+                     fixture_ref(env_full)])
 def test_max_steps(env):
     for episode_i in range(2):
         env.reset()
@@ -137,8 +137,8 @@ def test_max_steps(env):
         assert done == [True for _m in range(env.n_agents)]
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
+@parametrize('env', [fixture_ref(env),
+                     fixture_ref(env_full)])
 def test_collision(env):
     for episode_i in range(2):
         env.reset()
@@ -148,8 +148,8 @@ def test_collision(env):
         assert obs_1 == obs_2
 
 
-@parametrize_plus('env', [fixture_ref(env),
-                          fixture_ref(env_full)])
+@parametrize('env', [fixture_ref(env),
+                     fixture_ref(env_full)])
 def test_revisit_fruit_cell(env):
     for episode_i in range(2):
         env.reset()

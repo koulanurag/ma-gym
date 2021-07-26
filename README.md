@@ -74,9 +74,9 @@ Please refer to [Wiki](https://github.com/koulanurag/ma-gym/wiki/Environments) f
 | __PongDuel-v0__ | __PredatorPrey5x5-v0__ | __PredatorPrey7x7-v0__ |
 | ![PongDuel-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/PongDuel-v0.gif) | ![PredatorPrey5x5-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/PredatorPrey5x5-v0.gif) | ![PredatorPrey7x7-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/PredatorPrey7x7-v0.gif) |
 |                 __Switch2-v0__                 |                        __Switch4-v0__                         | __TrafficJunction4-v0__ |                                                             |
-|  ![Switch2-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/Switch2-v0.gif)  |         ![Switch4-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/Switch4-v0.gif)|![TrafficJunction4-v0.gif](static/gif/TrafficJunction4-v0.gif)|
+|  ![Switch2-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/Switch2-v0.gif)  |         ![Switch4-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/Switch4-v0.gif)|![TrafficJunction4-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/TrafficJunction4-v0.gif)|
 | __TrafficJunction10-v0__ |
-|![TrafficJunction10-v0.gif](static/gif/TrafficJunction10-v0.gif)|         |                                                              |
+|![TrafficJunction10-v0.gif](https://raw.githubusercontent.com/koulanurag/ma-gym/master/static/gif/TrafficJunction10-v0.gif)|         |                                                              |
 
 ## Testing:
 

@@ -40,8 +40,8 @@ def test_reset(env):
                                                                       ' when the environment resets'
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4), fixture_ref(env_10)])
+@parametrize('env',
+             [fixture_ref(env_4), fixture_ref(env_10)])
 def test_reset_after_episode_end(env):
     env.reset()
     done = [False for _ in range(env.n_agents)]
@@ -61,8 +61,8 @@ def test_reset_after_episode_end(env):
     test_reset(env)
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4), fixture_ref(env_10)])
+@parametrize('env',
+             [fixture_ref(env_4), fixture_ref(env_10)])
 def test_observation_space(env):
     obs = env.reset()
     expected_agent_i_shape = (np.prod(env._agent_view_mask) * (env.n_agents + 2 + 3),)
@@ -102,8 +102,8 @@ def test_step_cost_env10(env):
             'step_cost is not correct. Expected {} ; Got {}'.format(target_reward, reward_n)
 
 
-@pytest_parametrize_plus('env',
-                         [fixture_ref(env_4)])
+@parametrize('env',
+             [fixture_ref(env_4)])
 def test_all_brake_rollout_env4(env):
     """ All agent apply brake for the entire duration"""
     for _ in range(2):

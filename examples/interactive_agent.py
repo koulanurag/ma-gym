@@ -1,5 +1,7 @@
 import argparse
+
 import gym
+
 from ma_gym.wrappers import Monitor
 
 if __name__ == '__main__':

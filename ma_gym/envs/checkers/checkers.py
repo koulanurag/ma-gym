@@ -7,8 +7,8 @@ from gym import spaces
 from gym.utils import seeding
 
 from ..utils.action_space import MultiAgentActionSpace
+from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 from ..utils.observation_space import MultiAgentObservationSpace
-from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text, draw_score_board
 
 logger = logging.getLogger(__name__)
 

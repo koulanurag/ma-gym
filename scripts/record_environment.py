@@ -6,7 +6,6 @@ import argparse
 import os
 
 import gym
-import ma_gym
 import imageio
 
 
@@ -24,7 +23,7 @@ def parse_arguments():
 
 
 def main(args):
-    env = gym.make(args.env)
+    env = gym.make('ma_gym:' + args.env)
     pics = []
     done_n = [False] * env.n_agents
 

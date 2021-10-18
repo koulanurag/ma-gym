@@ -45,11 +45,12 @@ class Combat(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, grid_shape=(15, 15), n_agents=5, n_opponents=5, init_health=3, full_observable=False,
-                 step_cost=0, max_steps=100):
+                 step_cost=0, max_steps=100, step_cool=1):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
         self._n_opponents = n_opponents
         self._max_steps = max_steps
+        self._step_cool = step_cool + 1
         self._step_cost = step_cost
         self._step_count = None
 
@@ -58,15 +59,17 @@ class Combat(gym.Env):
 
         self.agent_pos = {_: None for _ in range(self.n_agents)}
         self.agent_prev_pos = {_: None for _ in range(self.n_agents)}
-        self.opp_pos = {_: None for _ in range(self.n_agents)}
-        self.opp_prev_pos = {_: None for _ in range(self.n_agents)}
+        self.opp_pos = {_: None for _ in range(self._n_opponents)}
+        self.opp_prev_pos = {_: None for _ in range(self._n_opponents)}
 
         self._init_health = init_health
         self.agent_health = {_: None for _ in range(self.n_agents)}
         self.opp_health = {_: None for _ in range(self._n_opponents)}
         self._agent_dones = [None for _ in range(self.n_agents)]
         self._agent_cool = {_: None for _ in range(self.n_agents)}
+        self._agent_cool_step = {_: None for _ in range(self.n_agents)}
         self._opp_cool = {_: None for _ in range(self._n_opponents)}
+        self._opp_cool_step = {_: None for _ in range(self._n_opponents)}
         self._total_episode_reward = None
         self.viewer = None
         self.full_observable = full_observable
@@ -74,8 +77,13 @@ class Combat(gym.Env):
         # 5 * 5 * (type, id, health, cool, x, y)
         self._obs_low = np.repeat(np.array([-1., 0., 0., -1., 0., 0.], dtype=np.float32), 5 * 5)
         self._obs_high = np.repeat(np.array([1., n_opponents, init_health, 1., 1., 1.], dtype=np.float32), 5 * 5)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.observation_space = MultiAgentObservationSpace(
+            [spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
         self.seed()
+
+        # For debug only
+        self._agents_trace = {_: None for _ in range(self.n_agents)}
+        self._opponents_trace = {_: None for _ in range(self._n_opponents)}
 
     def get_action_meanings(self, agent_i=None):
         action_meaning = []
@@ -100,43 +108,66 @@ class Combat(gym.Env):
     def get_agent_obs(self):
         """
         When input to a model, each agent is represented by a set of one-hot binary vectors {i, t, l, h, c}
-        encoding its unique ID, team ID, location, health points and cooldown.
+        encoding its team ID, unique ID, location, health points and cooldown.
         A model controlling an agent also sees other agents in its visual range (5 × 5 surrounding area).
         :return:
         """
         _obs = []
         for agent_i in range(self.n_agents):
-            pos = self.agent_pos[agent_i]
-
-            # _agent_i_obs = self._one_hot_encoding(agent_i, self.n_agents)
-            # _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
-            # _agent_i_obs += [self.agent_health[agent_i]]
-            # _agent_i_obs += [1 if self._agent_cool else 0]  # flag if agent is cooling down
-
-            # team id , unique id, location,health, cooldown
-
+            # team id , unique id, location, health, cooldown
             _agent_i_obs = np.zeros((6, 5, 5))
-            for row in range(0, 5):
-                for col in range(0, 5):
+            hp = self.agent_health[agent_i]
 
-                    if self.is_valid([row + (pos[0] - 2), col + (pos[1] - 2)]) and (
-                            PRE_IDS['empty'] not in self._full_obs[row + (pos[0] - 2)][col + (pos[1] - 2)]):
-                        x = self._full_obs[row + pos[0] - 2][col + pos[1] - 2]
-                        _type = 1 if PRE_IDS['agent'] in x else -1
-                        _id = int(x[1:]) - 1  # id
-                        _agent_i_obs[0][row][col] = _type
-                        _agent_i_obs[1][row][col] = _id
-                        _agent_i_obs[2][row][col] = self.agent_health[_id] if type == 1 else self.opp_health[_id]
-                        _agent_i_obs[3][row][col] = self._agent_cool[_id] if type == 1 else self._opp_cool[_id]
-                        _agent_i_obs[3][row][col] = 1 if _agent_i_obs[3][row][col] else -1  # cool/uncool
+            # If agent is alive
+            if hp > 0:
+                # _agent_i_obs = self._one_hot_encoding(agent_i, self.n_agents)
+                # _agent_i_obs += [pos[0] / self._grid_shape[0], pos[1] / (self._grid_shape[1] - 1)]  # coordinates
+                # _agent_i_obs += [self.agent_health[agent_i]]
+                # _agent_i_obs += [1 if self._agent_cool else 0]  # flag if agent is cooling down
 
-                        _agent_i_obs[4][row][col] = pos[0] / self._grid_shape[0]  # x-coordinate
-                        _agent_i_obs[5][row][col] = pos[1] / self._grid_shape[1]  # y-coordinate
+                pos = self.agent_pos[agent_i]
+                for row in range(0, 5):
+                    for col in range(0, 5):
+                        if self.is_valid([row + (pos[0] - 2), col + (pos[1] - 2)]) and (
+                                PRE_IDS['empty'] not in self._full_obs[row + (pos[0] - 2)][col + (pos[1] - 2)]):
+                            x = self._full_obs[row + pos[0] - 2][col + pos[1] - 2]
+                            _type = 1 if PRE_IDS['agent'] in x else -1
+                            _id = int(x[1:]) - 1  # id
+                            _agent_i_obs[0][row][col] = _type
+                            _agent_i_obs[1][row][col] = _id
+                            _agent_i_obs[2][row][col] = self.agent_health[_id] if _type == 1 else self.opp_health[_id]
+                            _agent_i_obs[3][row][col] = self._agent_cool[_id] if _type == 1 else self._opp_cool[_id]
+                            _agent_i_obs[3][row][col] = 1 if _agent_i_obs[3][row][col] else -1  # cool/uncool
+                            _agent_i_obs[4][row][col] = pos[0] / self._grid_shape[0]  # x-coordinate
+                            _agent_i_obs[5][row][col] = pos[1] / self._grid_shape[1]  # y-coordinate
 
             _agent_i_obs = _agent_i_obs.flatten().tolist()
             _obs.append(_agent_i_obs)
-
         return _obs
+
+    def get_state(self):
+        state = np.zeros((self.n_agents + self._n_opponents, 6))
+        # agent info
+        for agent_i in range(self.n_agents):
+            hp = self.agent_health[agent_i]
+            if hp > 0:
+                pos = self.agent_pos[agent_i]
+                feature = np.array([1, agent_i, hp, 1 if self._agent_cool[agent_i] else -1,
+                                pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]], dtype=np.float)
+                state[agent_i] = feature
+
+        # opponent info
+        for opp_i in range(self._n_opponents):
+            opp_hp = self.opp_health[opp_i]
+            if opp_hp > 0:
+                pos = self.opp_pos[opp_i]
+                feature = np.array([-1, opp_i, opp_hp, 1 if self._opp_cool[opp_i] else -1,
+                                    pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]], dtype=np.float)
+                state[opp_i + self.n_agents] = feature
+        return state.flatten()
+
+    def get_state_size(self):
+        return (self.n_agents + self._n_opponents) * 6
 
     def __create_grid(self):
         _grid = [[PRE_IDS['empty'] for _ in range(self._grid_shape[1])] for row in range(self._grid_shape[0])]
@@ -161,7 +192,9 @@ class Combat(gym.Env):
 
         # select agent team center
         # Note : Leaving space from edges so as to have a 5x5 grid around it
-        agent_team_center = self.np_random.randint(2, self._grid_shape[0] - 3), self.np_random.randint(2, self._grid_shape[1] - 3)
+        agent_team_center = self.np_random.randint(2, self._grid_shape[0] - 3), self.np_random.randint(2,
+                                                                                                       self._grid_shape[
+                                                                                                           1] - 3)
         # randomly select agent pos
         for agent_i in range(self.n_agents):
             while True:
@@ -199,10 +232,17 @@ class Combat(gym.Env):
         self.agent_health = {_: self._init_health for _ in range(self.n_agents)}
         self.opp_health = {_: self._init_health for _ in range(self._n_opponents)}
         self._agent_cool = {_: True for _ in range(self.n_agents)}
+        self._agent_cool_step = {_: 0 for _ in range(self.n_agents)}
         self._opp_cool = {_: True for _ in range(self._n_opponents)}
+        self._opp_cool_step = {_: 0 for _ in range(self._n_opponents)}
         self._agent_dones = [False for _ in range(self.n_agents)]
 
         self.__init_full_obs()
+
+        # For debug only
+        self._agents_trace = {_: [self.agent_pos[_]] for _ in range(self.n_agents)}
+        self._opponents_trace = {_: [self.opp_pos[_]] for _ in range(self._n_opponents)}
+
         return self.get_agent_obs()
 
     def render(self, mode='human'):
@@ -252,8 +292,9 @@ class Combat(gym.Env):
 
         if next_pos is not None and self._is_cell_vacant(next_pos):
             self.agent_pos[agent_i] = next_pos
-            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+            self.agent_prev_pos[agent_i] = curr_pos
             self.__update_agent_view(agent_i)
+            self._agents_trace[agent_i].append(next_pos)
 
     def __update_opp_pos(self, opp_i, move):
 
@@ -274,8 +315,9 @@ class Combat(gym.Env):
 
         if next_pos is not None and self._is_cell_vacant(next_pos):
             self.opp_pos[opp_i] = next_pos
-            self._full_obs[curr_pos[0]][curr_pos[1]] = PRE_IDS['empty']
+            self.opp_prev_pos[opp_i] = curr_pos
             self.__update_opp_view(opp_i)
+            self._opponents_trace[opp_i].append(next_pos)
 
     def is_valid(self, pos):
         return (0 <= pos[0] < self._grid_shape[0]) and (0 <= pos[1] < self._grid_shape[1])
@@ -296,7 +338,7 @@ class Combat(gym.Env):
                and (source_pos[1] - 2) <= target_pos[1] <= (source_pos[1] + 2)
 
     @staticmethod
-    def is_fireable(source_pos, target_pos):
+    def is_fireable(source_cooling_down, source_pos, target_pos):
         """
         Checks if the target_pos is in the firing range(5x5)
 
@@ -304,11 +346,10 @@ class Combat(gym.Env):
         :param target_pos: Coordinates of the target
         :return:
         """
-        return (source_pos[0] - 1) <= target_pos[0] <= (source_pos[0] + 1) \
+        return source_cooling_down and (source_pos[0] - 1) <= target_pos[0] <= (source_pos[0] + 1) \
                and (source_pos[1] - 1) <= target_pos[1] <= (source_pos[1] + 1)
 
-    def reduce_distance_move(self, source_pos, target_pos):
-
+    def reduce_distance_move(self, opp_i, source_pos, agent_i, target_pos):
         # Todo: makes moves Enum
         _moves = []
         if source_pos[0] > target_pos[0]:
@@ -321,6 +362,13 @@ class Combat(gym.Env):
         elif source_pos[1] < target_pos[1]:
             _moves.append('RIGHT')
 
+        if len(_moves) == 0:
+            print(self._step_count, source_pos, target_pos)
+            print("agent-{}, hp={}, move_trace={}".format(agent_i, self.agent_health[agent_i],
+                                                          self._agents_trace[agent_i]))
+            print(
+                "opponent-{}, hp={}, move_trace={}".format(opp_i, self.opp_health[opp_i], self._opponents_trace[opp_i]))
+            raise AssertionError("One place exists 2 entities!")
         move = self.np_random.choice(_moves)
         for k, v in ACTION_MEANING.items():
             if move.lower() == v.lower():
@@ -356,16 +404,16 @@ class Combat(gym.Env):
             action = None
             for _, agent_i in sorted(opp_agent_distance[opp_i]):
                 if agent_i in visible_agents:
-                    if self.is_fireable(self.opp_pos[opp_i], self.agent_pos[agent_i]):
+                    if self.is_fireable(self._opp_cool[opp_i], self.opp_pos[opp_i], self.agent_pos[agent_i]):
                         action = agent_i + 5
-                    else:
-                        action = self.reduce_distance_move(self.opp_pos[opp_i], self.agent_pos[agent_i])
+                    elif self.opp_health[opp_i] > 0:
+                        action = self.reduce_distance_move(opp_i, self.opp_pos[opp_i], agent_i, self.agent_pos[agent_i])
                     break
             if action is None:
-                logger.info('No visible agent for enemy:{}'.format(opp_i))
-                action = self.np_random.choice(range(5))
+                # logger.debug('No visible agent for enemy:{}'.format(opp_i))
+                # action = self.np_random.choice(range(5))
+                action = 4  # dead opponent could only execute 'no-op' action.
             opp_action_n.append(action)
-
 
         return opp_action_n
 
@@ -387,28 +435,49 @@ class Combat(gym.Env):
             if self.agent_health[agent_i] > 0:
                 if action > 4:  # attack actions
                     target_opp = action - 5
-                    if self.is_fireable(self.agent_pos[agent_i], self.opp_pos[target_opp]) \
+                    if self.is_fireable(self._agent_cool[agent_i], self.agent_pos[agent_i], self.opp_pos[target_opp]) \
                             and opp_health[target_opp] > 0:
+                        # Fire
                         opp_health[target_opp] -= 1
                         rewards[agent_i] += 1
 
+                        # Update agent cooling down
+                        self._agent_cool[agent_i] = False
+                        self._agent_cool_step[agent_i] = self._step_cool
+
+                        # Remove opp from the map
                         if opp_health[target_opp] == 0:
                             pos = self.opp_pos[target_opp]
                             self._full_obs[pos[0]][pos[1]] = PRE_IDS['empty']
+
+                # Update agent cooling down
+                self._agent_cool_step[agent_i] = max(self._agent_cool_step[agent_i] - 1, 0)
+                if self._agent_cool_step[agent_i] == 0 and not self._agent_cool[agent_i]:
+                    self._agent_cool[agent_i] = True
 
         opp_action = self.opps_action
         for opp_i, action in enumerate(opp_action):
             if self.opp_health[opp_i] > 0:
                 target_agent = action - 5
                 if action > 4:  # attack actions
-                    if self.is_fireable(self.opp_pos[opp_i], self.agent_pos[target_agent]) \
+                    if self.is_fireable(self._opp_cool[opp_i], self.opp_pos[opp_i], self.agent_pos[target_agent]) \
                             and agent_health[target_agent] > 0:
+                        # Fire
                         agent_health[target_agent] -= 1
-                        rewards[target_agent] -= 1
+                        # rewards[target_agent] -= 1
 
+                        # Update opp cooling down
+                        self._opp_cool[opp_i] = False
+                        self._opp_cool_step[opp_i] = self._step_cool
+
+                        # Remove agent from the map
                         if agent_health[target_agent] == 0:
                             pos = self.agent_pos[target_agent]
                             self._full_obs[pos[0]][pos[1]] = PRE_IDS['empty']
+                # Update opp cooling down
+                self._opp_cool_step[opp_i] = max(self._opp_cool_step[opp_i] - 1, 0)
+                if self._opp_cool_step[opp_i] == 0 and not self._opp_cool[opp_i]:
+                    self._opp_cool[opp_i] = True
 
         self.agent_health, self.opp_health = agent_health, opp_health
 

@@ -45,13 +45,14 @@ class Combat(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, grid_shape=(15, 15), n_agents=5, n_opponents=5, init_health=3, full_observable=False,
-                 step_cost=0, max_steps=100, step_cool=1):
+                 step_cost=0, max_steps=100, step_cool=1, render=True):
         self._grid_shape = grid_shape
         self.n_agents = n_agents
         self._n_opponents = n_opponents
         self._max_steps = max_steps
         self._step_cool = step_cool + 1
         self._step_cost = step_cost
+        self._render = render
         self._step_count = None
 
         self.action_space = MultiAgentActionSpace(
@@ -153,7 +154,7 @@ class Combat(gym.Env):
             if hp > 0:
                 pos = self.agent_pos[agent_i]
                 feature = np.array([1, agent_i, hp, 1 if self._agent_cool[agent_i] else -1,
-                                pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]], dtype=np.float)
+                                    pos[0] / self._grid_shape[0], pos[1] / self._grid_shape[1]], dtype=np.float)
                 state[agent_i] = feature
 
         # opponent info
@@ -410,11 +411,12 @@ class Combat(gym.Env):
                         action = self.reduce_distance_move(opp_i, self.opp_pos[opp_i], agent_i, self.agent_pos[agent_i])
                     break
             if action is None:
-                # logger.debug('No visible agent for enemy:{}'.format(opp_i))
-                # action = self.np_random.choice(range(5))
-                action = 4  # dead opponent could only execute 'no-op' action.
+                if self.opp_health[opp_i] > 0:
+                    # logger.debug('No visible agent for enemy:{}'.format(opp_i))
+                    action = self.np_random.choice(range(5))
+                else:
+                    action = 4  # dead opponent could only execute 'no-op' action.
             opp_action_n.append(action)
-
         return opp_action_n
 
     def step(self, agents_action):
@@ -464,7 +466,7 @@ class Combat(gym.Env):
                             and agent_health[target_agent] > 0:
                         # Fire
                         agent_health[target_agent] -= 1
-                        # rewards[target_agent] -= 1
+                        rewards[target_agent] -= 1
 
                         # Update opp cooling down
                         self._opp_cool[opp_i] = False

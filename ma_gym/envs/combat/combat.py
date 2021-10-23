@@ -139,8 +139,9 @@ class Combat(gym.Env):
                             _agent_i_obs[2][row][col] = self.agent_health[_id] if _type == 1 else self.opp_health[_id]
                             _agent_i_obs[3][row][col] = self._agent_cool[_id] if _type == 1 else self._opp_cool[_id]
                             _agent_i_obs[3][row][col] = 1 if _agent_i_obs[3][row][col] else -1  # cool/uncool
-                            _agent_i_obs[4][row][col] = pos[0] / self._grid_shape[0]  # x-coordinate
-                            _agent_i_obs[5][row][col] = pos[1] / self._grid_shape[1]  # y-coordinate
+                            entity_position = self.agent_pos[_id] if _type == 1 else self.opp_pos[_id]
+                            _agent_i_obs[4][row][col] = entity_position[0] / self._grid_shape[0]  # x-coordinate
+                            _agent_i_obs[5][row][col] = entity_position[1] / self._grid_shape[1]  # y-coordinate
 
             _agent_i_obs = _agent_i_obs.flatten().tolist()
             _obs.append(_agent_i_obs)

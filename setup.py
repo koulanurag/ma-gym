@@ -26,7 +26,7 @@ setup(name='ma_gym',
           'numpy>=1.16.4',
           'pyglet>=1.4.0,<=1.5.0',
           'cloudpickle>=1.2.0,<1.7.0',
-          'gym>=0.17.0',
+          'gym==0.9.0',
           'pillow>=7.2.0',
           'six>=1.16.0'
       ],

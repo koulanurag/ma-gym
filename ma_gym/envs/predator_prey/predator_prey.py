@@ -76,7 +76,8 @@ class PredatorPrey(gym.Env):
         if self.full_observable:
             self._obs_high = np.tile(self._obs_high, self.n_agents)
             self._obs_low = np.tile(self._obs_low, self.n_agents)
-        self.observation_space = MultiAgentObservationSpace([spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
+        self.observation_space = MultiAgentObservationSpace(
+            [spaces.Box(self._obs_low, self._obs_high) for _ in range(self.n_agents)])
 
         self._total_episode_reward = None
         self.seed()
@@ -103,7 +104,8 @@ class PredatorPrey(gym.Env):
 
         for agent_i in range(self.n_agents):
             while True:
-                pos = [self.np_random.randint(0, self._grid_shape[0] - 1), self.np_random.randint(0, self._grid_shape[1] - 1)]
+                pos = [self.np_random.randint(0, self._grid_shape[0] - 1),
+                       self.np_random.randint(0, self._grid_shape[1] - 1)]
                 if self._is_cell_vacant(pos):
                     self.agent_pos[agent_i] = pos
                     break
@@ -111,7 +113,8 @@ class PredatorPrey(gym.Env):
 
         for prey_i in range(self.n_preys):
             while True:
-                pos = [self.np_random.randint(0, self._grid_shape[0] - 1), self.np_random.randint(0, self._grid_shape[1] - 1)]
+                pos = [self.np_random.randint(0, self._grid_shape[0] - 1),
+                       self.np_random.randint(0, self._grid_shape[1] - 1)]
                 if self._is_cell_vacant(pos) and (self._neighbour_agents(pos)[0] == 0):
                     self.prey_pos[prey_i] = pos
                     break
@@ -123,7 +126,7 @@ class PredatorPrey(gym.Env):
         _obs = []
         for agent_i in range(self.n_agents):
             pos = self.agent_pos[agent_i]
-            _agent_i_obs = [pos[0] / (self._grid_shape[0] - 1), pos[1] / (self._grid_shape[1] - 1)] # coordinates
+            _agent_i_obs = [pos[0] / (self._grid_shape[0] - 1), pos[1] / (self._grid_shape[1] - 1)]  # coordinates
 
             # check if prey is in the view area
             _prey_pos = np.zeros(self._agent_view_mask)  # prey location in neighbour

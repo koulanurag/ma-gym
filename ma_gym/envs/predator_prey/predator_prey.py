@@ -38,7 +38,15 @@ class PredatorPrey(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
 
     def __init__(self, grid_shape=(5, 5), n_agents=2, n_preys=1, prey_move_probs=(0.175, 0.175, 0.175, 0.175, 0.3),
-                 full_observable=False, penalty=-0.5, step_cost=-0.01, prey_capture_reward=5, max_steps=100):
+                 full_observable=False, penalty=-0.5, step_cost=-0.01, prey_capture_reward=5, max_steps=100,
+                 agent_view_mask=(5, 5)):
+        assert len(grid_shape) == 2, 'expected a tuple of size 2 for grid_shape, but found {}'.format(grid_shape)
+        assert len(agent_view_mask) == 2, 'expected a tuple of size 2 for agent view mask,' \
+                                          ' but found {}'.format(agent_view_mask)
+        assert grid_shape[0] > 0 and grid_shape[1] > 0, 'grid shape should be > 0'
+        assert 0 < agent_view_mask[0] <= grid_shape[0], 'agent view mask has to be within (0,{}]'.format(grid_shape[0])
+        assert 0 < agent_view_mask[1] <= grid_shape[1], 'agent view mask has to be within (0,{}]'.format(grid_shape[1])
+
         self._grid_shape = grid_shape
         self.n_agents = n_agents
         self.n_preys = n_preys
@@ -47,7 +55,7 @@ class PredatorPrey(gym.Env):
         self._penalty = penalty
         self._step_cost = step_cost
         self._prey_capture_reward = prey_capture_reward
-        self._agent_view_mask = (5, 5)
+        self._agent_view_mask = agent_view_mask
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
         self.agent_pos = {_: None for _ in range(self.n_agents)}

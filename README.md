@@ -12,7 +12,7 @@ Using PyPI:
 pip install ma-gym
 ```
 
-Directly from source:
+Directly from source (recommended):
 ```bash
 git clone https://github.com/koulanurag/ma-gym.git
 cd ma-gym

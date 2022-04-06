@@ -8,6 +8,20 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  schedule:
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning' 
+        type: choice
+        options:
+        - info
+        - warning
+        - debug 
 
 jobs:
   build:

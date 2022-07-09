@@ -16,9 +16,11 @@ class MultiAgentWrapper(gym.Wrapper):
 
         self.action_space = MultiAgentActionSpace([self.env.action_space])
         self.observation_space = MultiAgentObservationSpace([self.env.observation_space])
-        self._step_count = 0
 
     def step(self, action_n):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         self._step_count += 1
         assert len(action_n) == self.n_agents
 

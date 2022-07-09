@@ -26,6 +26,7 @@ class PongDuel(gym.Env):
         self.action_space = MultiAgentActionSpace([spaces.Discrete(3) for _ in range(self.n_agents)])
 
         self._step_count = None
+        self._steps_beyond_done = None
         self._step_cost = step_cost
         self._total_episode_reward = None
         self.agent_pos = {_: None for _ in range(self.n_agents)}
@@ -114,6 +115,7 @@ class PongDuel(gym.Env):
         self._agent_dones = [False, False]
         self.__init_full_obs()
         self._step_count = 0
+        self._steps_beyond_done = None
         self._total_episode_reward = [0 for _ in range(self.n_agents)]
 
         return self.get_agent_obs()
@@ -138,6 +140,9 @@ class PongDuel(gym.Env):
                     [self.ball_pos[0] - 2, self.ball_pos[1] + 2]]
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
             for row in range(self.agent_pos[agent_i][0] - 2, self.agent_pos[agent_i][0] + 3):
@@ -231,6 +236,9 @@ class PongDuel(gym.Env):
         return [seed]
 
     def step(self, action_n):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         assert len(action_n) == self.n_agents
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
@@ -256,6 +264,21 @@ class PongDuel(gym.Env):
 
         for i in range(self.n_agents):
             self._total_episode_reward[i] += rewards[i]
+
+        # Check for episode overflow
+        if all(self._agent_dones):
+            if self._steps_beyond_done is None:
+                self._steps_beyond_done = 0
+            else:
+                if self._steps_beyond_done == 0:
+                    logger.warn(
+                        "You are calling 'step()' even though this "
+                        "environment has already returned all(done) = True. You "
+                        "should always call 'reset()' once you receive "
+                        "'all(done) = True' -- any further steps are undefined "
+                        "behavior."
+                    )
+                self._steps_beyond_done += 1
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'rounds': self.__rounds}
 

@@ -64,7 +64,7 @@ class TrafficJunction(gym.Env):
         self._grid_shape = grid_shape
         self.n_agents = n_max
         self._max_steps = max_steps
-        self._step_count = 0  # environment step counter
+        self._step_count = None  # environment step counter
         self._collision_reward = collision_reward
         self._total_episode_reward = None
         self._arrive_prob = arrive_prob

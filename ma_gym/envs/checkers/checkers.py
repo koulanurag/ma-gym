@@ -176,6 +176,9 @@ class Checkers(gym.Env):
         self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
 
     def step(self, agents_action):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         assert len(agents_action) == self.n_agents
 
         self._step_count += 1
@@ -217,6 +220,9 @@ class Checkers(gym.Env):
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         for agent_i in range(self.n_agents):
             fill_cell(self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)
             fill_cell(self._base_img, self.agent_prev_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)

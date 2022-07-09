@@ -83,6 +83,7 @@ class Lumberjacks(gym.Env):
         self._agent_view = agent_view
         self.full_observable = full_observable
         self._step_cost = step_cost
+        self._step_count = None
         self._tree_cutdown_reward = tree_cutdown_reward
         self._max_steps = max_steps
         self.steps_beyond_done = 0
@@ -198,6 +199,9 @@ class Lumberjacks(gym.Env):
         return np.reshape(init_pos, self._grid_shape)
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         img = copy.copy(self._base_img)
 
         mask = (
@@ -286,6 +290,8 @@ class Lumberjacks(gym.Env):
         yield from self._view_generator(mask)
 
     def step(self, agents_action: List[int]):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
         # Assert would slow down the environment which is undesirable. We rather expect the check on the user side.
         # assert len(agents_action) == self.n_agents
 

@@ -148,6 +148,9 @@ class Switch(gym.Env):
         return self.agent_pos[agent_i] == self.final_agent_pos[agent_i]
 
     def step(self, agents_action):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
         for agent_i, action in enumerate(agents_action):
@@ -170,6 +173,9 @@ class Switch(gym.Env):
         return self.get_agent_obs(), rewards, self._agent_dones, {}
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
             draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i], radius=0.3)

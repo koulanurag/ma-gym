@@ -229,6 +229,7 @@ class Combat(gym.Env):
 
     def reset(self):
         self._step_count = 0
+        self._steps_beyond_done = None
         self._total_episode_reward = [0 for _ in range(self.n_agents)]
         self.agent_health = {_: self._init_health for _ in range(self.n_agents)}
         self.opp_health = {_: self._init_health for _ in range(self._n_opponents)}
@@ -247,6 +248,9 @@ class Combat(gym.Env):
         return self.get_agent_obs()
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         img = copy.copy(self._base_img)
 
         # draw agents
@@ -420,6 +424,9 @@ class Combat(gym.Env):
         return opp_action_n
 
     def step(self, agents_action):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         assert len(agents_action) == self.n_agents
 
         self._step_count += 1
@@ -502,6 +509,21 @@ class Combat(gym.Env):
 
         for i in range(self.n_agents):
             self._total_episode_reward[i] += rewards[i]
+
+        # Check for episode overflow
+        if all(self._agent_dones):
+            if self._steps_beyond_done is None:
+                self._steps_beyond_done = 0
+            else:
+                if self._steps_beyond_done == 0:
+                    logger.warn(
+                        "You are calling 'step()' even though this "
+                        "environment has already returned done = True. You "
+                        "should always call 'reset()' once you receive "
+                        "'done = True' -- any further steps are undefined "
+                        "behavior."
+                    )
+                self._steps_beyond_done += 1
 
         return self.get_agent_obs(), rewards, self._agent_dones, {'health': self.agent_health}
 

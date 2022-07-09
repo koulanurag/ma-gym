@@ -52,6 +52,7 @@ class PredatorPrey(gym.Env):
         self.n_preys = n_preys
         self._max_steps = max_steps
         self._step_count = None
+        self._steps_beyond_done = None
         self._penalty = penalty
         self._step_cost = step_cost
         self._prey_capture_reward = prey_capture_reward
@@ -151,6 +152,7 @@ class PredatorPrey(gym.Env):
 
         self.__init_full_obs()
         self._step_count = 0
+        self._steps_beyond_done = None
         self._agent_dones = [False for _ in range(self.n_agents)]
         self._prey_alive = [True for _ in range(self.n_preys)]
 
@@ -257,6 +259,9 @@ class PredatorPrey(gym.Env):
         return _count, agent_id
 
     def step(self, agents_action):
+        assert (self._step_count is not None), \
+            "Call reset before using step method."
+
         self._step_count += 1
         rewards = [self._step_cost for _ in range(self.n_agents)]
 
@@ -294,6 +299,21 @@ class PredatorPrey(gym.Env):
         for i in range(self.n_agents):
             self._total_episode_reward[i] += rewards[i]
 
+        # Check for episode overflow
+        if all(self._agent_dones):
+            if self._steps_beyond_done is None:
+                self._steps_beyond_done = 0
+            else:
+                if self._steps_beyond_done == 0:
+                    logger.warn(
+                        "You are calling 'step()' even though this "
+                        "environment has already returned all(done) = True. You "
+                        "should always call 'reset()' once you receive "
+                        "'all(done) = True' -- any further steps are undefined "
+                        "behavior."
+                    )
+                self._steps_beyond_done += 1
+
         return self.get_agent_obs(), rewards, self._agent_dones, {'prey_alive': self._prey_alive}
 
     def __get_neighbour_coordinates(self, pos):
@@ -309,6 +329,9 @@ class PredatorPrey(gym.Env):
         return neighbours
 
     def render(self, mode='human'):
+        assert (self._step_count is not None), \
+            "Call reset before using render method."
+
         img = copy.copy(self._base_img)
         for agent_i in range(self.n_agents):
             for neighbour in self.__get_neighbour_coordinates(self.agent_pos[agent_i]):

@@ -93,6 +93,7 @@ class Lumberjacks(gym.Env):
         # Therefor we need to pad the grid size by the maximum agent_view size.
         # Relative coordinates refer to the coordinates in non pad grid. These are the only
         # coordinates visible to user. Extended coordinates refer to the coordinates in pad grid.
+        self.__init_pos = None
         self._agent_map = None
         self._tree_map = None
         self._total_episode_reward = None
@@ -169,7 +170,8 @@ class Lumberjacks(gym.Env):
         return extended_coordinates[0] - self._agent_view[0], extended_coordinates[1] - self._agent_view[1]
 
     def _generate_init_pos(self) -> np.ndarray:
-        """Returns randomly selected initial positions for agents and trees in relative coordinates.
+        """Returns randomly selected initial positions for agents and trees
+        in relative coordinates.
 
         No agent or trees share the same cell in initial positions.
         """
@@ -178,7 +180,21 @@ class Lumberjacks(gym.Env):
             [PRE_IDS['tree']] * self._n_trees +
             [PRE_IDS['empty']] * (np.prod(self._grid_shape) - self.n_agents - self._n_trees)
         )
-        self.np_random.shuffle(init_pos)
+
+        # We ensure initial grid position is not same as last episode's
+        # initial position. Though, just shuffling the array is sufficient,
+        # we do validate and iterate to ensure change in position. If it still
+        # remains same, we issue a warning and continue with the configuration.
+        if self.__init_pos is not None:
+            _shuffle_counter = 0
+            self.np_random.shuffle(init_pos)
+            while self.__init_pos != init_pos:
+                self.np_random.shuffle(init_pos)
+                _shuffle_counter += 1
+                if _shuffle_counter > 10:
+                    logger.warning("Grid configuration same as last episode")
+                    break
+        self.__init_pos = init_pos
         return np.reshape(init_pos, self._grid_shape)
 
     def render(self, mode='human'):
@@ -220,7 +236,8 @@ class Lumberjacks(gym.Env):
             return self._viewer.isopen
 
     def _view_generator(self, mask: Tuple[slice, slice]) -> Tuple[Coordinates, int, int]:
-        """Yields position, number of agent and tree strength for all cells defined by `mask`.
+        """Yields position, number of agent and tree strength for all cells
+        defined by `mask`.
 
         Args:
             mask: tuple of slices in extended coordinates.

@@ -188,7 +188,7 @@ class Lumberjacks(gym.Env):
         if self.__init_pos is not None:
             _shuffle_counter = 0
             self.np_random.shuffle(init_pos)
-            while self.__init_pos != init_pos:
+            while not all(self.__init_pos == init_pos):
                 self.np_random.shuffle(init_pos)
                 _shuffle_counter += 1
                 if _shuffle_counter > 10:

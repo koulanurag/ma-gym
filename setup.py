@@ -12,7 +12,7 @@ extras = {
 extras['all'] = [item for group in extras.values() for item in group]
 
 setup(name='ma_gym',
-      version='0.0.9',
+      version='0.0.10',
       description='A collection of multi agent environments based on OpenAI gym.',
       long_description_content_type='text/markdown',
       long_description=open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8').read(),

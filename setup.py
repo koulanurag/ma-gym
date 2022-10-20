@@ -24,7 +24,7 @@ setup(name='ma_gym',
       install_requires=[
           'scipy>=1.3.0',
           'numpy>=1.16.4',
-          'pyglet>=1.4.0,<=1.5.0',
+          'pyglet>=1.4.0,<=1.5.27',
           'cloudpickle>=1.2.0,<1.7.0',
           'gym==0.19.0',
           'pillow>=7.2.0',

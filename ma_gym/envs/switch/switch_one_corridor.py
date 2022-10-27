@@ -26,6 +26,7 @@ class Switch(gym.Env):
         self._step_cost = step_cost
         self._total_episode_reward = None
         self._add_clock = clock
+        self._agent_dones = None
 
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 

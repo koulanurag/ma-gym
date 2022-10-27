@@ -242,7 +242,7 @@ class TrafficJunction(gym.Env):
         agent_obs = []
         for agent_i in range(self.n_agents):
             pos = self.agent_pos[agent_i]
-            mask_view = np.zeros((*self._agent_view_mask, len(agent_no_mask_obs[0])))
+            mask_view = np.zeros((*self._agent_view_mask, len(agent_no_mask_obs[0])), dtype=np.float32)
             for row in range(max(0, pos[0] - 1), min(pos[0] + 1 + 1, self._grid_shape[0])):
                 for col in range(max(0, pos[1] - 1), min(pos[1] + 1 + 1, self._grid_shape[1])):
                     if PRE_IDS['agent'] in self._full_obs[row][col]:

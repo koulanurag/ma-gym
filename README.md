@@ -10,19 +10,22 @@ It's a collection of multi agent environments based on OpenAI gym. Also, you can
 
 ## Installation
 
-**Requires:** ```pip install 'pip<=23.0.1'```
+- Setup:
+   ```bash
+      pip install 'pip<=23.0.1'
+   ```
+- Install package:
+   - Using PyPI:
+      ```bash
+      pip install ma-gym
+      ```
 
-Using PyPI:
-```bash
-pip install ma-gym
-```
-
-Directly from source (recommended):
-```bash
-git clone https://github.com/koulanurag/ma-gym.git
-cd ma-gym
-pip install -e .
-```
+   - Directly from source (recommended):
+      ```bash
+      git clone https://github.com/koulanurag/ma-gym.git
+      cd ma-gym
+      pip install -e .
+      ```
 ## Reference:
 Please use this bibtex if you would like to cite it:
 ```

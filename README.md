@@ -9,6 +9,9 @@ It's a collection of multi agent environments based on OpenAI gym. Also, you can
 
 
 ## Installation
+
+**Requires:** ```pip install 'pip<=23.0.1'```
+
 Using PyPI:
 ```bash
 pip install ma-gym

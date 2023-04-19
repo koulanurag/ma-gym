@@ -22,7 +22,7 @@ setup(name='ma_gym',
       license='MIT License',
       packages=setuptools.find_packages(),
       install_requires=[
-          'pip<=23.0.1'
+          'pip<=23.0.1',
           'scipy>=1.3.0',
           'numpy>=1.16.4',
           'pyglet>=1.4.0,<=1.5.27',

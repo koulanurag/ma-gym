@@ -6,6 +6,7 @@ It's a collection of multi agent environments based on OpenAI gym. Also, you can
 [![Downloads](https://pepy.tech/badge/ma-gym)](https://pepy.tech/project/ma-gym)
 [![Wiki Docs](https://img.shields.io/badge/-Wiki%20Docs-informational?style=flat)](https://github.com/koulanurag/ma-gym/wiki)
 [![Papers using ma-gym](https://img.shields.io/badge/-Papers%20using%20ma--gym-9cf?style=flat&logo=googlescholar)](https://scholar.google.com/scholar?hl=en&as_sdt=5,38&cites=14123576959169220642,12284637994392993807&scipsc=&q=&scisbd=1)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/koulanurag/ma-gym/blob/master/examples/colab_example.ipynb)
 
 
 ## Installation

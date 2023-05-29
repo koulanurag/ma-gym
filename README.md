@@ -1,8 +1,9 @@
 # ma-gym
 It's a collection of multi agent environments based on OpenAI gym. Also, you can use [**minimal-marl**](https://github.com/koulanurag/minimal-marl) to warm-start training of agents.
 
-![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg) 
+![Python package](https://github.com/koulanurag/ma-gym/workflows/Python%20package/badge.svg)
 ![Upload Python Package](https://github.com/koulanurag/ma-gym/workflows/Upload%20Python%20Package/badge.svg)
+![Python Version](https://img.shields.io/pypi/pyversions/ma-gym)
 [![Downloads](https://pepy.tech/badge/ma-gym)](https://pepy.tech/project/ma-gym)
 [![Wiki Docs](https://img.shields.io/badge/-Wiki%20Docs-informational?style=flat)](https://github.com/koulanurag/ma-gym/wiki)
 [![Papers using ma-gym](https://img.shields.io/badge/-Papers%20using%20ma--gym-9cf?style=flat&logo=googlescholar)](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=14123576959169220642,12284637994392993807)
@@ -11,7 +12,7 @@ It's a collection of multi agent environments based on OpenAI gym. Also, you can
 
 ## Installation
 
-- Setup:
+- Setup (important):
    ```bash
       pip install 'pip<=23.0.1'
       pip install 'setuptools<=66'

@@ -32,7 +32,7 @@ setup(name='ma_gym',
       ],
       extras_require=extras,
       tests_require=extras['test'],
-      python_requires='>=3.6, <=3.11',
+      python_requires='>=3.6, <3.12',
       classifiers=[
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',

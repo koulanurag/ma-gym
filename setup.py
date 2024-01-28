@@ -4,7 +4,7 @@ import setuptools
 from setuptools import setup
 
 extras = {
-    'test': ['pytest', 'pytest_cases'],
+    'test': ['pytest<8.0.0', 'pytest_cases'],
     'develop': ['imageio'],
 }
 
